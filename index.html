@@ -256,22 +256,6 @@ a { color: inherit; text-decoration: none; }
 .metric-delta.up   { color: var(--accent); }
 .metric-delta.down { color: var(--warn); }
 
-.diff-badge {
-  font-family: var(--mono);
-  font-size: 9px;
-  letter-spacing: 0.12em;
-  font-weight: 500;
-  padding: 2px 7px;
-  border: 1px solid var(--border-strong);
-  color: var(--text-3);
-  text-transform: uppercase;
-  white-space: nowrap;
-  line-height: 1.4;
-}
-.diff-badge.changed   { color: var(--accent); border-color: rgba(16, 185, 129, 0.3); }
-.diff-badge.unchanged { color: var(--text-2); }
-.diff-badge.no-base   { color: var(--text-3); font-style: italic; }
-
 .card-signals {
   display: flex;
   gap: 10px;
@@ -471,16 +455,6 @@ function renderCard(srcKey, src) {
     const itemsCls = deltaCls(d?.items);
     const sizeCls  = deltaCls(d?.size_bytes);
 
-    // 어제 대비 변동 배지 (size 기준 단일 진실)
-    let badgeHtml = '';
-    if (d?.changed_vs_yesterday === true) {
-      badgeHtml = `<span class="diff-badge changed" title="size 기준 어제 대비 변동됨">변동 ✓</span>`;
-    } else if (d?.changed_vs_yesterday === false) {
-      badgeHtml = `<span class="diff-badge unchanged" title="size 동일 — 콘텐츠 변동 없음">변동 없음</span>`;
-    } else {
-      badgeHtml = `<span class="diff-badge no-base" title="어제 history 없음 — 내일부터 비교 시작">기준 없음</span>`;
-    }
-
     metricsHtml = `
       <div class="card-metrics">
         <div class="metric-row">
@@ -496,10 +470,6 @@ function renderCard(srcKey, src) {
             <span class="metric-value">${fmtSize(src.metrics.size_bytes)}</span>
             ${sizeDelta ? `<span class="metric-delta ${sizeCls}">${sizeDelta}</span>` : ''}
           </span>
-        </div>
-        <div class="metric-row" style="margin-top:2px">
-          <span class="metric-label">vs 어제</span>
-          ${badgeHtml}
         </div>
       </div>
     `;

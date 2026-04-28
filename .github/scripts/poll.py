@@ -79,17 +79,23 @@ GROUPS: dict = {
                 "label": "일반 환율 (USD/JPY/EUR …)",
                 "page_label": "환율 계산기 · 여행 비용 페이지",
                 "tech_context": "Cloudflare Worker · sudanghelp-rates",
-                "data_label": "ExchangeRate API base 변환",
+                "data_label": "ExchangeRate API base 변환 (49 통화)",
+                "url": "https://sudanghelp-rates.sehwan4696.workers.dev/",
                 "page_url": "https://sudanghelp.co.kr/travel/exchange-calculator/",
-                "fetch": "pending",
+                "fetch": "json",
+                "updated_field": "updated_at",   # ISO 8601 UTC
+                "items_kind": "currencies",       # len(rates dict)
             },
             "bank-exchange": {
                 "label": "은행별 환율 + 스프레드",
                 "page_label": "환전 분석 페이지",
                 "tech_context": "Cloudflare Worker · bank-exchange-rates → Supabase",
                 "data_label": "은행별 환율 + 스프레드 (현찰/송금)",
+                "url": "https://bank-exchange-rates.sehwan4696.workers.dev/",
                 "page_url": "https://sudanghelp.co.kr/travel/exchange-analysis/",
-                "fetch": "pending",
+                "fetch": "json",
+                "updated_field": "updated_at",   # "YYYY-MM-DD HH:MM:SS" (KST naive)
+                "items_kind": "data_array",       # len(data array)
             },
         },
     },
@@ -105,8 +111,11 @@ GROUPS: dict = {
                 "page_label": "여행 페이지 전반 · 피드백 위젯",
                 "tech_context": "Cloudflare Worker · sudanghelpfeedback (KV)",
                 "data_label": "리뷰 · 좋아요/싫어요 · 조회수",
+                "url": "https://sudanghelpfeedback.sehwan4696.workers.dev/api/stats",
                 "page_url": "https://sudanghelp.co.kr/travel/",
-                "fetch": "pending",
+                "fetch": "json",
+                "updated_field": None,            # KV 응답에 timestamp 없음 — HTTP 200 으로 충분
+                "items_kind": "feedback_views",   # views 카운트
             },
         },
     },
@@ -131,21 +140,53 @@ def fetch(url: str, headers: dict | None = None) -> tuple[bytes, dict]:
 
 
 # ───────── Time helpers ─────────
-def parse_updated(s: str) -> str:
-    """Normalize various updatedAt formats to ISO 8601 UTC. Empty on failure."""
-    if not s:
+def parse_updated(s) -> str:
+    """Normalize various updatedAt formats to ISO 8601 UTC. Empty on failure.
+
+    Supports:
+    - ISO 8601 (with or without TZ, with or without 'Z')          rates.json
+    - "YYYY-MM-DD HH:MM KST"                                       featured_promos.json
+    - "YYYY-MM-DD HH:MM:SS" (naive — assumed KST)                  bank-exchange-rates worker
+    - int / float — Unix timestamp seconds OR milliseconds         optional fallback
+    """
+    if s is None or s == "":
         return ""
+
+    # numeric Unix timestamp (sec or ms)
+    if isinstance(s, (int, float)):
+        n = float(s)
+        if n > 1e12:    # ms
+            n /= 1000
+        try:
+            return datetime.fromtimestamp(n, timezone.utc).isoformat()
+        except (OverflowError, ValueError, OSError):
+            return ""
+
+    s = str(s)
+
+    # ISO 8601
     try:
         dt = datetime.fromisoformat(s.replace("Z", "+00:00"))
         return dt.astimezone(timezone.utc).isoformat()
     except ValueError:
         pass
+
+    # "YYYY-MM-DD HH:MM KST"
     if s.endswith(" KST"):
         try:
             dt = datetime.strptime(s[:-4], "%Y-%m-%d %H:%M")
             return (dt - timedelta(hours=9)).replace(tzinfo=timezone.utc).isoformat()
         except ValueError:
             pass
+
+    # naive "YYYY-MM-DD HH:MM:SS" — assume KST
+    for fmt in ("%Y-%m-%d %H:%M:%S", "%Y-%m-%d %H:%M"):
+        try:
+            dt = datetime.strptime(s, fmt)
+            return (dt - timedelta(hours=9)).replace(tzinfo=timezone.utc).isoformat()
+        except ValueError:
+            continue
+
     return ""
 
 
@@ -175,10 +216,18 @@ def classify_freshness(age_min: int | None, group_key: str) -> str:
 
 # ───────── Items counter ─────────
 def count_items(data: dict, kind: str) -> int:
-    if kind == "rates":
+    """Returns a representative item count for the given source kind."""
+    if kind == "rates":           # FSS rates.json: deposits + savings
         return len(data.get("deposits", [])) + len(data.get("savings", []))
-    if kind == "items":
+    if kind == "items":           # featured_promos.json
         return len(data.get("items", []))
+    if kind == "currencies":      # sudanghelp-rates worker: rates dict size
+        return len(data.get("rates", {}))
+    if kind == "data_array":      # bank-exchange-rates worker: data list
+        return len(data.get("data", []))
+    if kind == "feedback_views":  # sudanghelpfeedback worker: views as proxy
+        v = data.get("views")
+        return int(v) if isinstance(v, (int, float)) else 0
     return 0
 
 
@@ -243,13 +292,23 @@ def poll_json_source(group_key: str, src_cfg: dict, now: datetime, prev_metrics:
         items = count_items(data, src_cfg.get("items_kind", ""))
         size_bytes = len(body)
 
-        updated_raw = str(data.get(src_cfg["updated_field"], ""))
-        updated_iso = parse_updated(updated_raw)
-        age = age_minutes(updated_iso, now)
+        updated_field = src_cfg.get("updated_field")
+        if updated_field:
+            updated_raw_val = data.get(updated_field, "")
+            updated_raw = str(updated_raw_val) if updated_raw_val != "" else ""
+            updated_iso = parse_updated(updated_raw_val)
+            age = age_minutes(updated_iso, now)
+            status = classify_freshness(age, group_key)
+        else:
+            # 응답에 timestamp 없음 (e.g. feedback KV) — HTTP 200 = ok
+            updated_raw = ""
+            updated_iso = ""
+            age = None
+            status = "ok"
 
         same_as_last_poll = bool(prev_metrics and prev_metrics.get("hash") == sha)
 
-        out["status"] = classify_freshness(age, group_key)
+        out["status"] = status
         out["http_status"] = 200
         out["metrics"] = {
             "items": items,
