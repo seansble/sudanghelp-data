@@ -1,6 +1,6 @@
 {
   "schema_version": 3,
-  "checked_at": "2026-04-28T07:22:01.760390Z",
+  "checked_at": "2026-04-28T07:40:38.680805Z",
   "groups": {
     "daily": {
       "label": "하루 1회 갱신",
@@ -25,17 +25,14 @@
           "freshness": {
             "updated_at": "2026-04-28T04:03:28.936832+00:00",
             "updated_at_raw": "2026-04-28T13:03:28.936832+09:00",
-            "age_min": 198,
+            "age_min": 217,
             "fallback": true
           },
           "delta": null,
           "http_status": 200,
           "cron": {
-            "status": "ok",
-            "last_commit_at": "2026-04-28T04:03:52Z",
-            "age_min": 198,
-            "sha": "42d4191",
-            "message": "chore(rates): update rates 2026-04-28"
+            "status": "unauthorized",
+            "note": "MAIN_REPO_PAT secret 미설정"
           }
         },
         "promos": {
@@ -54,17 +51,14 @@
           "freshness": {
             "updated_at": "2026-04-28T04:03:00+00:00",
             "updated_at_raw": "2026-04-28 13:03 KST",
-            "age_min": 199,
+            "age_min": 217,
             "fallback": true
           },
           "delta": null,
           "http_status": 200,
           "cron": {
-            "status": "ok",
-            "last_commit_at": "2026-04-28T04:03:52Z",
-            "age_min": 198,
-            "sha": "42d4191",
-            "message": "chore(rates): update rates 2026-04-28"
+            "status": "unauthorized",
+            "note": "MAIN_REPO_PAT secret 미설정"
           }
         }
       }

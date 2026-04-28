@@ -256,6 +256,22 @@ a { color: inherit; text-decoration: none; }
 .metric-delta.up   { color: var(--accent); }
 .metric-delta.down { color: var(--warn); }
 
+.diff-badge {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  font-weight: 500;
+  padding: 2px 7px;
+  border: 1px solid var(--border-strong);
+  color: var(--text-3);
+  text-transform: uppercase;
+  white-space: nowrap;
+  line-height: 1.4;
+}
+.diff-badge.changed   { color: var(--accent); border-color: rgba(16, 185, 129, 0.3); }
+.diff-badge.unchanged { color: var(--text-2); }
+.diff-badge.no-base   { color: var(--text-3); font-style: italic; }
+
 .card-signals {
   display: flex;
   gap: 10px;
@@ -392,9 +408,15 @@ function fmtSize(bytes) {
 function fmtDelta(v, kind) {
   if (v == null) return null;
   if (v === 0) return '±0';
-  const sign = v > 0 ? '+' : '';
-  if (kind === 'size') return sign + fmtSize(Math.abs(v)).replace(/^/, v > 0 ? '+' : '-');
-  return sign + v.toLocaleString('en-US');
+  const sign = v > 0 ? '+' : '−';   // ASCII minus 대신 typographic minus (정렬용)
+  const abs = Math.abs(v);
+  if (kind === 'size') return sign + fmtSize(abs);
+  return sign + abs.toLocaleString('en-US');
+}
+
+function deltaCls(v) {
+  if (v == null || v === 0) return '';
+  return v > 0 ? 'up' : 'down';
 }
 
 function setVerdict(level) {
@@ -443,26 +465,41 @@ function renderCard(srcKey, src) {
 
   let metricsHtml = '';
   if (!isPending && src.metrics) {
-    const itemsDelta = src.delta ? fmtDelta(src.delta.items, 'items') : null;
-    const sizeDelta = src.delta ? fmtDelta(src.delta.size_bytes, 'size') : null;
-    const itemsDeltaCls = src.delta?.items != null
-      ? (src.delta.items > 0 ? 'up' : src.delta.items < 0 ? 'down' : '')
-      : '';
+    const d = src.delta;
+    const itemsDelta = d ? fmtDelta(d.items, 'items') : null;
+    const sizeDelta  = d ? fmtDelta(d.size_bytes, 'size') : null;
+    const itemsCls = deltaCls(d?.items);
+    const sizeCls  = deltaCls(d?.size_bytes);
+
+    // 어제 대비 변동 배지 (size 기준 단일 진실)
+    let badgeHtml = '';
+    if (d?.changed_vs_yesterday === true) {
+      badgeHtml = `<span class="diff-badge changed" title="size 기준 어제 대비 변동됨">변동 ✓</span>`;
+    } else if (d?.changed_vs_yesterday === false) {
+      badgeHtml = `<span class="diff-badge unchanged" title="size 동일 — 콘텐츠 변동 없음">변동 없음</span>`;
+    } else {
+      badgeHtml = `<span class="diff-badge no-base" title="어제 history 없음 — 내일부터 비교 시작">기준 없음</span>`;
+    }
+
     metricsHtml = `
       <div class="card-metrics">
         <div class="metric-row">
           <span class="metric-label">items</span>
           <span>
             <span class="metric-value">${fmtItems(src.metrics.items)}</span>
-            ${itemsDelta ? `<span class="metric-delta ${itemsDeltaCls}">${itemsDelta}</span>` : ''}
+            ${itemsDelta ? `<span class="metric-delta ${itemsCls}">${itemsDelta}</span>` : ''}
           </span>
         </div>
         <div class="metric-row">
           <span class="metric-label">size</span>
           <span>
             <span class="metric-value">${fmtSize(src.metrics.size_bytes)}</span>
-            ${sizeDelta ? `<span class="metric-delta">${sizeDelta}</span>` : ''}
+            ${sizeDelta ? `<span class="metric-delta ${sizeCls}">${sizeDelta}</span>` : ''}
           </span>
+        </div>
+        <div class="metric-row" style="margin-top:2px">
+          <span class="metric-label">vs 어제</span>
+          ${badgeHtml}
         </div>
       </div>
     `;

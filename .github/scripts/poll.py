@@ -347,10 +347,15 @@ def compute_delta(curr: dict | None, prev_day: dict | None) -> dict | None:
             return None
         return a - b
 
+    size_delta = diff("size_bytes")
+    # 변동 판정 기준: size_bytes (사용자 요청). 0 이면 변동 없음, 0 외 = 변동.
+    changed = (size_delta != 0) if size_delta is not None else None
+
     return {
         "items": diff("items"),
-        "size_bytes": diff("size_bytes"),
+        "size_bytes": size_delta,
         "hash_changed": curr.get("hash") != prev_day.get("hash"),
+        "changed_vs_yesterday": changed,
         "compared_to": "yesterday",
     }
 
