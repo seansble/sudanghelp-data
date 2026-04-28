@@ -1,6 +1,6 @@
 {
   "schema_version": 3,
-  "checked_at": "2026-04-28T07:41:33.006678Z",
+  "checked_at": "2026-04-28T07:59:30.759050Z",
   "groups": {
     "daily": {
       "label": "하루 1회 갱신",
@@ -25,7 +25,7 @@
           "freshness": {
             "updated_at": "2026-04-28T04:03:28.936832+00:00",
             "updated_at_raw": "2026-04-28T13:03:28.936832+09:00",
-            "age_min": 218,
+            "age_min": 236,
             "fallback": true
           },
           "delta": null,
@@ -33,7 +33,7 @@
           "cron": {
             "status": "ok",
             "last_commit_at": "2026-04-28T04:03:52Z",
-            "age_min": 217,
+            "age_min": 235,
             "sha": "42d4191",
             "message": "chore(rates): update rates 2026-04-28"
           }
@@ -54,7 +54,7 @@
           "freshness": {
             "updated_at": "2026-04-28T04:03:00+00:00",
             "updated_at_raw": "2026-04-28 13:03 KST",
-            "age_min": 218,
+            "age_min": 236,
             "fallback": true
           },
           "delta": null,
@@ -62,7 +62,7 @@
           "cron": {
             "status": "ok",
             "last_commit_at": "2026-04-28T04:03:52Z",
-            "age_min": 217,
+            "age_min": 235,
             "sha": "42d4191",
             "message": "chore(rates): update rates 2026-04-28"
           }
