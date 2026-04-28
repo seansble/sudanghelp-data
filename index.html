@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>sudanghelp-data · 실시간 데이터 헬스</title>
+<meta name="description" content="sudanghelp.co.kr 의 FSS 금리·특판·환율 데이터 신선도와 fallback 상태를 실시간으로 추적하는 운영 대시보드.">
+<meta name="robots" content="noindex">
+
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link rel="preconnect" href="https://api.github.com">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css">
+
+<style>
+:root {
+  --bg: #0a0a0a;
+  --surface: #131313;
+  --surface-2: #1a1a1a;
+  --border: #262626;
+  --text: #ededed;
+  --text-dim: #888;
+  --text-muted: #555;
+  --accent: #10b981;
+  --warn: #f59e0b;
+  --down: #ef4444;
+  --mono: ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", monospace;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: "Pretendard", system-ui, -apple-system, sans-serif;
+  font-size: 15px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+.container {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 48px 24px 80px;
+}
+
+/* Header */
+.hd {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 40px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--border);
+}
+.hd h1 {
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  margin-bottom: 4px;
+}
+.hd h1 .accent { color: var(--accent); }
+.hd .sub {
+  color: var(--text-dim);
+  font-size: 13px;
+}
+.hd .meta {
+  text-align: right;
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.hd .meta .now { color: var(--text-dim); }
+
+/* Section */
+.section { margin-bottom: 48px; }
+.section-title {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Status grid */
+.status-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 12px;
+}
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 18px 20px;
+}
+.card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+.card-name {
+  font-size: 13px;
+  color: var(--text-dim);
+  font-weight: 500;
+}
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--text-muted);
+  flex-shrink: 0;
+}
+.dot.ok { background: var(--accent); box-shadow: 0 0 8px rgba(16, 185, 129, 0.4); }
+.dot.warn { background: var(--warn); box-shadow: 0 0 8px rgba(245, 158, 11, 0.4); }
+.dot.down { background: var(--down); box-shadow: 0 0 8px rgba(239, 68, 68, 0.4); }
+.dot.loading { background: var(--text-muted); animation: pulse 1.4s ease-in-out infinite; }
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 1; }
+}
+
+.card-value {
+  font-family: var(--mono);
+  font-size: 24px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  margin-bottom: 4px;
+}
+.card-value .unit {
+  font-size: 13px;
+  color: var(--text-dim);
+  font-weight: 400;
+  margin-left: 4px;
+}
+.card-foot {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text-muted);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 8px;
+}
+.card-foot .status-label {
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.card-foot .status-label.ok { color: var(--accent); }
+.card-foot .status-label.warn { color: var(--warn); }
+.card-foot .status-label.down { color: var(--down); }
+
+/* Data tables */
+.preview-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+@media (max-width: 720px) {
+  .preview-grid { grid-template-columns: 1fr; }
+}
+.preview {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.preview-head {
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-2);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.preview-head h3 {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.preview-head .count {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text-muted);
+}
+.preview-body {
+  padding: 8px 0;
+  max-height: 420px;
+  overflow-y: auto;
+}
+.preview-body::-webkit-scrollbar { width: 6px; }
+.preview-body::-webkit-scrollbar-track { background: transparent; }
+.preview-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+.row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+  padding: 10px 20px;
+  border-bottom: 1px solid var(--surface-2);
+  align-items: center;
+}
+.row:last-child { border-bottom: none; }
+.row-name {
+  font-size: 13px;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.row-bank {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+.row-rate {
+  font-family: var(--mono);
+  font-size: 14px;
+  color: var(--accent);
+  font-weight: 500;
+  text-align: right;
+  white-space: nowrap;
+}
+.row-tier {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  font-family: var(--mono);
+}
+.row-tier.hot { color: var(--down); }
+.row-tier.trending { color: var(--warn); }
+.row-tier.verified { color: var(--accent); }
+
+.empty {
+  padding: 40px 20px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+/* Footer */
+.ft {
+  margin-top: 64px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.ft .links { display: flex; gap: 18px; flex-wrap: wrap; }
+.ft .links a { color: var(--text-dim); }
+.ft .links a:hover { color: var(--accent); }
+
+/* Responsive */
+@media (max-width: 600px) {
+  .container { padding: 32px 16px 60px; }
+  .hd { flex-direction: column; align-items: flex-start; gap: 12px; }
+  .hd .meta { text-align: left; }
+  .card-value { font-size: 20px; }
+}
+
+[hidden] { display: none !important; }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <header class="hd">
+    <div>
+      <h1>sudanghelp<span class="accent">-data</span></h1>
+      <div class="sub">실시간 데이터 헬스 · operational ledger</div>
+    </div>
+    <div class="meta">
+      <div class="now" id="now-ts">—</div>
+      <div>auto-refresh 60s</div>
+    </div>
+  </header>
+
+  <section class="section">
+    <div class="section-title">
+      <i class="ph ph-pulse"></i> 데이터 신선도
+    </div>
+    <div class="status-grid" id="status-grid">
+
+      <article class="card" data-card="rates">
+        <div class="card-head">
+          <span class="card-name">FSS 예적금 금리</span>
+          <span class="dot loading"></span>
+        </div>
+        <div class="card-value" data-field="value">—</div>
+        <div class="card-foot">
+          <span data-field="age">불러오는 중…</span>
+          <span class="status-label" data-field="status">—</span>
+        </div>
+      </article>
+
+      <article class="card" data-card="promos">
+        <div class="card-head">
+          <span class="card-name">SNS 특판</span>
+          <span class="dot loading"></span>
+        </div>
+        <div class="card-value" data-field="value">—</div>
+        <div class="card-foot">
+          <span data-field="age">불러오는 중…</span>
+          <span class="status-label" data-field="status">—</span>
+        </div>
+      </article>
+
+      <article class="card" data-card="cron">
+        <div class="card-head">
+          <span class="card-name">메인 cron</span>
+          <span class="dot loading"></span>
+        </div>
+        <div class="card-value" data-field="value">—</div>
+        <div class="card-foot">
+          <span data-field="age">불러오는 중…</span>
+          <span class="status-label" data-field="status">—</span>
+        </div>
+      </article>
+
+      <article class="card" data-card="workers">
+        <div class="card-head">
+          <span class="card-name">Cloudflare Workers</span>
+          <span class="dot loading"></span>
+        </div>
+        <div class="card-value" data-field="value">—</div>
+        <div class="card-foot">
+          <span data-field="age">v2 예정</span>
+          <span class="status-label">PENDING</span>
+        </div>
+      </article>
+
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-title">
+      <i class="ph ph-list-bullets"></i> 최신 데이터 미리보기
+    </div>
+    <div class="preview-grid">
+
+      <div class="preview">
+        <div class="preview-head">
+          <h3>예금 금리 TOP 5</h3>
+          <span class="count" id="deposit-count">—</span>
+        </div>
+        <div class="preview-body" id="deposit-rows">
+          <div class="empty">불러오는 중…</div>
+        </div>
+      </div>
+
+      <div class="preview">
+        <div class="preview-head">
+          <h3>적금 금리 TOP 5</h3>
+          <span class="count" id="saving-count">—</span>
+        </div>
+        <div class="preview-body" id="saving-rows">
+          <div class="empty">불러오는 중…</div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-title">
+      <i class="ph ph-fire"></i> 검증된 SNS 특판
+    </div>
+    <div class="preview" style="grid-column: 1 / -1;">
+      <div class="preview-head">
+        <h3>오늘의 특판</h3>
+        <span class="count" id="promos-count">—</span>
+      </div>
+      <div class="preview-body" id="promos-rows">
+        <div class="empty">불러오는 중…</div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="ft">
+    <div>v0 · operational ledger for sudanghelp.co.kr</div>
+    <div class="links">
+      <a href="https://sudanghelp.co.kr">Main site</a>
+      <a href="https://sudanghelp.co.kr/compoundcalc/rates/">Rates page</a>
+      <a href="https://github.com/seansble/sudanghelp-data">Repo</a>
+      <a href="https://github.com/seansble/sudanghelp-data/blob/main/LICENSE">CC-BY-4.0</a>
+    </div>
+  </footer>
+
+</div>
+
+<script>
+const SOURCES = {
+  rates: {
+    cdn: 'https://cdn.jsdelivr.net/gh/seansble/sudanghelp@master/compoundcalc/rates/rates.json',
+    api: 'https://api.github.com/repos/seansble/sudanghelp/commits?path=compoundcalc/rates/rates.json&per_page=1'
+  },
+  promos: {
+    cdn: 'https://cdn.jsdelivr.net/gh/seansble/sudanghelp@master/compoundcalc/rates/featured_promos.json',
+    api: 'https://api.github.com/repos/seansble/sudanghelp/commits?path=compoundcalc/rates/featured_promos.json&per_page=1'
+  },
+  cron: {
+    api: 'https://api.github.com/repos/seansble/sudanghelp/actions/workflows/update-rates.yml/runs?per_page=1'
+  }
+};
+
+const HEALTHY_HOURS = 24;
+const STALE_HOURS = 48;
+
+function classifyAge(hours) {
+  if (hours < HEALTHY_HOURS) return 'ok';
+  if (hours < STALE_HOURS) return 'warn';
+  return 'down';
+}
+
+function formatAge(ms) {
+  const min = Math.floor(ms / 60000);
+  if (min < 1) return '방금 전';
+  if (min < 60) return `${min}분 전`;
+  const hr = Math.floor(min / 60);
+  if (hr < 24) return `${hr}시간 전`;
+  const day = Math.floor(hr / 24);
+  return `${day}일 전`;
+}
+
+function statusLabel(level) {
+  return ({ ok: 'HEALTHY', warn: 'STALE', down: 'DOWN', loading: '—' })[level] || '—';
+}
+
+function setCard(name, { value, unit, ageMs, status, statusOverride }) {
+  const card = document.querySelector(`[data-card="${name}"]`);
+  if (!card) return;
+  const dot = card.querySelector('.dot');
+  const level = statusOverride || (ageMs == null ? 'loading' : classifyAge(ageMs / 3600000));
+
+  dot.className = `dot ${level === 'loading' ? 'loading' : level}`;
+
+  const valueEl = card.querySelector('[data-field="value"]');
+  if (value != null) {
+    valueEl.innerHTML = unit
+      ? `${value}<span class="unit">${unit}</span>`
+      : value;
+  }
+
+  const ageEl = card.querySelector('[data-field="age"]');
+  if (ageEl) ageEl.textContent = ageMs != null ? formatAge(ageMs) : (status || '—');
+
+  const statusEl = card.querySelector('[data-field="status"]');
+  if (statusEl) {
+    statusEl.textContent = statusLabel(level);
+    statusEl.className = `status-label ${level === 'loading' ? '' : level}`;
+  }
+}
+
+async function fetchJSON(url) {
+  const r = await fetch(url, { cache: 'no-cache' });
+  if (!r.ok) throw new Error(`${r.status}`);
+  return r.json();
+}
+
+async function loadRates() {
+  try {
+    const [data, commits] = await Promise.all([
+      fetchJSON(SOURCES.rates.cdn),
+      fetchJSON(SOURCES.rates.api)
+    ]);
+    const lastCommit = commits[0] && new Date(commits[0].commit.committer.date);
+    const ageMs = lastCommit ? Date.now() - lastCommit.getTime() : null;
+
+    const deposits = (data.deposit || []).slice(0, 5);
+    const savings = (data.saving || []).slice(0, 5);
+    const total = (data.deposit?.length || 0) + (data.saving?.length || 0);
+
+    setCard('rates', { value: total, unit: 'items', ageMs });
+
+    document.getElementById('deposit-count').textContent = `total ${data.deposit?.length || 0}`;
+    document.getElementById('saving-count').textContent = `total ${data.saving?.length || 0}`;
+    renderRateRows('deposit-rows', deposits);
+    renderRateRows('saving-rows', savings);
+  } catch (e) {
+    setCard('rates', { value: 'ERR', statusOverride: 'down', status: e.message });
+    document.getElementById('deposit-rows').innerHTML = `<div class="empty">로드 실패 (${e.message})</div>`;
+    document.getElementById('saving-rows').innerHTML = `<div class="empty">로드 실패 (${e.message})</div>`;
+  }
+}
+
+function renderRateRows(id, rows) {
+  const el = document.getElementById(id);
+  if (!rows.length) { el.innerHTML = '<div class="empty">데이터 없음</div>'; return; }
+  el.innerHTML = rows.map(r => {
+    const name = r.product_name || r.fin_prdt_nm || r.name || '—';
+    const bank = r.bank_name || r.kor_co_nm || r.bank || '';
+    const rate = r.intr_rate2 ?? r.max_rate ?? r.rate ?? r.intr_rate;
+    const rateStr = rate != null ? `${Number(rate).toFixed(2)}%` : '—';
+    return `<div class="row">
+      <div>
+        <div class="row-name">${escapeHtml(name)}</div>
+        ${bank ? `<div class="row-bank">${escapeHtml(bank)}</div>` : ''}
+      </div>
+      <div class="row-rate">${rateStr}</div>
+    </div>`;
+  }).join('');
+}
+
+async function loadPromos() {
+  try {
+    const [data, commits] = await Promise.all([
+      fetchJSON(SOURCES.promos.cdn),
+      fetchJSON(SOURCES.promos.api)
+    ]);
+    const lastCommit = commits[0] && new Date(commits[0].commit.committer.date);
+    const ageMs = lastCommit ? Date.now() - lastCommit.getTime() : null;
+    const items = data.items || [];
+
+    setCard('promos', { value: items.length, unit: 'items', ageMs });
+    document.getElementById('promos-count').textContent = `total ${items.length}`;
+    renderPromoRows('promos-rows', items.slice(0, 10));
+  } catch (e) {
+    setCard('promos', { value: 'ERR', statusOverride: 'down', status: e.message });
+    document.getElementById('promos-rows').innerHTML = `<div class="empty">로드 실패 (${e.message})</div>`;
+  }
+}
+
+function renderPromoRows(id, items) {
+  const el = document.getElementById(id);
+  if (!items.length) { el.innerHTML = '<div class="empty">활성 특판 없음</div>'; return; }
+  el.innerHTML = items.map(p => {
+    const tier = (p.trust_tier || p.tier || 'verified').toLowerCase();
+    const name = p.product_name || p.name || '—';
+    const bank = p.bank_name || p.bank || '';
+    const rate = p.rate || p.max_rate;
+    const rateStr = rate != null ? `${Number(rate).toFixed(2)}%` : '—';
+    return `<div class="row">
+      <div>
+        <div class="row-name">${escapeHtml(name)} <span class="row-tier ${tier}">${tier}</span></div>
+        ${bank ? `<div class="row-bank">${escapeHtml(bank)}</div>` : ''}
+      </div>
+      <div class="row-rate">${rateStr}</div>
+    </div>`;
+  }).join('');
+}
+
+async function loadCron() {
+  try {
+    const data = await fetchJSON(SOURCES.cron.api);
+    const run = data.workflow_runs?.[0];
+    if (!run) { setCard('cron', { value: 'N/A', statusOverride: 'warn' }); return; }
+    const ageMs = Date.now() - new Date(run.run_started_at || run.created_at).getTime();
+    const ok = run.conclusion === 'success';
+    const value = ok ? '✓' : '✗';
+    const level = ok ? classifyAge(ageMs / 3600000) : 'down';
+    setCard('cron', { value, unit: run.conclusion || run.status, ageMs, statusOverride: level });
+  } catch (e) {
+    setCard('cron', { value: 'ERR', statusOverride: 'down', status: e.message });
+  }
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  }[c]));
+}
+
+function updateNow() {
+  const d = new Date();
+  const pad = n => String(n).padStart(2, '0');
+  document.getElementById('now-ts').textContent =
+    `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())} KST`;
+}
+
+async function refreshAll() {
+  await Promise.all([loadRates(), loadPromos(), loadCron()]);
+}
+
+updateNow();
+setInterval(updateNow, 1000);
+refreshAll();
+setInterval(refreshAll, 60000);
+</script>
+
+</body>
+</html>
