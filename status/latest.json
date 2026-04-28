@@ -1,18 +1,18 @@
 {
-  "checked_at": "2026-04-28T02:04:24.548250Z",
+  "checked_at": "2026-04-28T03:33:49.869855Z",
   "schema_version": 2,
   "cron": {
     "rates": {
       "status": "ok",
       "last_commit_at": "2026-04-27T03:58:46Z",
-      "age_min": 1325,
+      "age_min": 1415,
       "sha": "aaed1eb",
       "message": "chore(rates): update rates 2026-04-27"
     },
     "promos": {
       "status": "ok",
       "last_commit_at": "2026-04-27T03:58:46Z",
-      "age_min": 1325,
+      "age_min": 1415,
       "sha": "aaed1eb",
       "message": "chore(rates): update rates 2026-04-27"
     }
@@ -20,28 +20,28 @@
   "sources": {
     "rates": {
       "url": "https://sudanghelp.co.kr/compoundcalc/rates/rates.json",
-      "status": "down",
+      "status": "ok",
       "http_status": 200,
-      "updated_at": "2026-04-24T03:48:10.865000+00:00",
-      "updated_at_raw": "2026-04-24T12:48:10.865000+09:00",
-      "age_min": 5656,
+      "updated_at": "2026-04-27T03:58:27.838659+00:00",
+      "updated_at_raw": "2026-04-27T12:58:27.838659+09:00",
+      "age_min": 1415,
       "items": 1666,
-      "hash": "81724ae9d6df5d1755ba6b501cce55a88bf8702ddf6396586bc635463c06b4e5",
-      "fallback": true,
-      "size_bytes": 1765847
+      "hash": "103463ba322bdfc0c188cb798c52d414be9fd119a9e4745db90d9f380292a15b",
+      "fallback": false,
+      "size_bytes": 1723060
     },
     "promos": {
       "url": "https://sudanghelp.co.kr/compoundcalc/rates/featured_promos.json",
-      "status": "down",
+      "status": "ok",
       "http_status": 200,
-      "updated_at": "2026-04-24T03:48:00+00:00",
-      "updated_at_raw": "2026-04-24 12:48 KST",
-      "age_min": 5656,
+      "updated_at": "2026-04-27T03:58:00+00:00",
+      "updated_at_raw": "2026-04-27 12:58 KST",
+      "age_min": 1415,
       "items": 11,
-      "hash": "0fa179f507cedad98853366916bd17414726a3292a695ac198b052aee2e513ea",
-      "fallback": true,
-      "size_bytes": 22577
+      "hash": "a604bd3ea53efbfc0c529e39ef53812d402d281c51395791af19191e3d16f9b3",
+      "fallback": false,
+      "size_bytes": 22100
     }
   },
-  "overall": "deploy_pending"
+  "overall": "ok"
 }
