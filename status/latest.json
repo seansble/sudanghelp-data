@@ -1,6 +1,6 @@
 {
   "schema_version": 3,
-  "checked_at": "2026-04-28T08:57:16.668924Z",
+  "checked_at": "2026-04-28T08:58:14.024530Z",
   "groups": {
     "daily": {
       "label": "하루 1회 갱신",
@@ -25,7 +25,7 @@
           "freshness": {
             "updated_at": "2026-04-28T04:03:28.936832+00:00",
             "updated_at_raw": "2026-04-28T13:03:28.936832+09:00",
-            "age_min": 293,
+            "age_min": 294,
             "fallback": true
           },
           "delta": null,
@@ -51,7 +51,7 @@
           "freshness": {
             "updated_at": "2026-04-28T04:03:00+00:00",
             "updated_at_raw": "2026-04-28 13:03 KST",
-            "age_min": 294,
+            "age_min": 295,
             "fallback": true
           },
           "delta": null,
@@ -81,12 +81,12 @@
           "metrics": {
             "items": 49,
             "size_bytes": 1137,
-            "hash": "ad814051314cf3345ecedd9fc34579503d2831034050573ea8bf41a655246114"
+            "hash": "4accc56360af768a93f778ebb2e7ba73d2b23876a80278ea43e561bb3d108419"
           },
           "freshness": {
             "updated_at": "2026-04-28T08:00:40.596000+00:00",
             "updated_at_raw": "2026-04-28T08:00:40.596Z",
-            "age_min": 56,
+            "age_min": 57,
             "fallback": false
           },
           "delta": null,
@@ -109,7 +109,7 @@
             "updated_at": "",
             "updated_at_raw": "None",
             "age_min": null,
-            "fallback": false
+            "fallback": true
           },
           "delta": null,
           "http_status": 200
@@ -140,7 +140,7 @@
             "updated_at": "",
             "updated_at_raw": "",
             "age_min": null,
-            "fallback": false
+            "fallback": true
           },
           "delta": null,
           "http_status": 200
