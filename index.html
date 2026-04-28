@@ -407,18 +407,11 @@ a:hover { text-decoration: underline; }
 
 <script>
 const SOURCES = {
-  rates: {
-    cdn: 'https://cdn.jsdelivr.net/gh/seansble/sudanghelp@master/compoundcalc/rates/rates.json',
-    api: 'https://api.github.com/repos/seansble/sudanghelp/commits?path=compoundcalc/rates/rates.json&per_page=1'
-  },
-  promos: {
-    cdn: 'https://cdn.jsdelivr.net/gh/seansble/sudanghelp@master/compoundcalc/rates/featured_promos.json',
-    api: 'https://api.github.com/repos/seansble/sudanghelp/commits?path=compoundcalc/rates/featured_promos.json&per_page=1'
-  },
-  cron: {
-    api: 'https://api.github.com/repos/seansble/sudanghelp/actions/workflows/update-rates.yml/runs?per_page=1'
-  }
+  rates:  'https://sudanghelp.co.kr/compoundcalc/rates/rates.json',
+  promos: 'https://sudanghelp.co.kr/compoundcalc/rates/featured_promos.json'
 };
+
+const state = { rates: null, promos: null };
 
 const HEALTHY_HOURS = 24;
 const STALE_HOURS = 48;
@@ -476,25 +469,28 @@ async function fetchJSON(url) {
 
 async function loadRates() {
   try {
-    const [data, commits] = await Promise.all([
-      fetchJSON(SOURCES.rates.cdn),
-      fetchJSON(SOURCES.rates.api)
-    ]);
-    const lastCommit = commits[0] && new Date(commits[0].commit.committer.date);
-    const ageMs = lastCommit ? Date.now() - lastCommit.getTime() : null;
+    const data = await fetchJSON(SOURCES.rates);
+    state.rates = data;
 
-    const deposits = (data.deposit || []).slice(0, 5);
-    const savings = (data.saving || []).slice(0, 5);
-    const total = (data.deposit?.length || 0) + (data.saving?.length || 0);
+    const updated = data.updatedAtIso ? new Date(data.updatedAtIso) : null;
+    const ageMs = updated ? Date.now() - updated.getTime() : null;
+
+    const deposits = data.deposits || [];
+    const savings = data.savings || [];
+    const total = deposits.length + savings.length;
 
     setCard('rates', { value: total, unit: 'items', ageMs });
 
-    document.getElementById('deposit-count').textContent = `total ${data.deposit?.length || 0}`;
-    document.getElementById('saving-count').textContent = `total ${data.saving?.length || 0}`;
-    renderRateRows('deposit-rows', deposits);
-    renderRateRows('saving-rows', savings);
+    const topDeposits = [...deposits].sort((a, b) => (b.maxRate || 0) - (a.maxRate || 0)).slice(0, 5);
+    const topSavings = [...savings].sort((a, b) => (b.maxRate || 0) - (a.maxRate || 0)).slice(0, 5);
+
+    document.getElementById('deposit-count').textContent = `total ${deposits.length}`;
+    document.getElementById('saving-count').textContent = `total ${savings.length}`;
+    renderRateRows('deposit-rows', topDeposits);
+    renderRateRows('saving-rows', topSavings);
   } catch (e) {
-    setCard('rates', { value: 'ERR', statusOverride: 'down', status: e.message });
+    state.rates = null;
+    setCard('rates', { value: 'ERR', statusOverride: 'down' });
     document.getElementById('deposit-rows').innerHTML = `<div class="empty">로드 실패 (${e.message})</div>`;
     document.getElementById('saving-rows').innerHTML = `<div class="empty">로드 실패 (${e.message})</div>`;
   }
@@ -504,9 +500,9 @@ function renderRateRows(id, rows) {
   const el = document.getElementById(id);
   if (!rows.length) { el.innerHTML = '<div class="empty">데이터 없음</div>'; return; }
   el.innerHTML = rows.map(r => {
-    const name = r.product_name || r.fin_prdt_nm || r.name || '—';
-    const bank = r.bank_name || r.kor_co_nm || r.bank || '';
-    const rate = r.intr_rate2 ?? r.max_rate ?? r.rate ?? r.intr_rate;
+    const name = r.product || '—';
+    const bank = r.bank || '';
+    const rate = r.maxRate ?? r.baseRate;
     const rateStr = rate != null ? `${Number(rate).toFixed(2)}%` : '—';
     return `<div class="row">
       <div>
@@ -518,21 +514,28 @@ function renderRateRows(id, rows) {
   }).join('');
 }
 
+function parseUpdatedAt(s) {
+  if (!s) return null;
+  const m = s.match(/^(\d{4})-(\d{2})-(\d{2})\s+(\d{2}):(\d{2})/);
+  if (!m) return new Date(s);
+  return new Date(`${m[1]}-${m[2]}-${m[3]}T${m[4]}:${m[5]}:00+09:00`);
+}
+
 async function loadPromos() {
   try {
-    const [data, commits] = await Promise.all([
-      fetchJSON(SOURCES.promos.cdn),
-      fetchJSON(SOURCES.promos.api)
-    ]);
-    const lastCommit = commits[0] && new Date(commits[0].commit.committer.date);
-    const ageMs = lastCommit ? Date.now() - lastCommit.getTime() : null;
+    const data = await fetchJSON(SOURCES.promos);
+    state.promos = data;
+
+    const updated = parseUpdatedAt(data.updatedAt);
+    const ageMs = updated ? Date.now() - updated.getTime() : null;
     const items = data.items || [];
 
     setCard('promos', { value: items.length, unit: 'items', ageMs });
     document.getElementById('promos-count').textContent = `total ${items.length}`;
     renderPromoRows('promos-rows', items.slice(0, 10));
   } catch (e) {
-    setCard('promos', { value: 'ERR', statusOverride: 'down', status: e.message });
+    state.promos = null;
+    setCard('promos', { value: 'ERR', statusOverride: 'down' });
     document.getElementById('promos-rows').innerHTML = `<div class="empty">로드 실패 (${e.message})</div>`;
   }
 }
@@ -541,10 +544,10 @@ function renderPromoRows(id, items) {
   const el = document.getElementById(id);
   if (!items.length) { el.innerHTML = '<div class="empty">활성 특판 없음</div>'; return; }
   el.innerHTML = items.map(p => {
-    const tier = (p.trust_tier || p.tier || 'verified').toLowerCase();
-    const name = p.product_name || p.name || '—';
-    const bank = p.bank_name || p.bank || '';
-    const rate = p.rate || p.max_rate;
+    const tier = (p.trustTier || 'verified').toLowerCase();
+    const name = p.product || '—';
+    const bank = p.bank || '';
+    const rate = p.maxRate ?? p.baseRate;
     const rateStr = rate != null ? `${Number(rate).toFixed(2)}%` : '—';
     return `<div class="row">
       <div>
@@ -556,19 +559,19 @@ function renderPromoRows(id, items) {
   }).join('');
 }
 
-async function loadCron() {
-  try {
-    const data = await fetchJSON(SOURCES.cron.api);
-    const run = data.workflow_runs?.[0];
-    if (!run) { setCard('cron', { value: 'N/A', statusOverride: 'warn' }); return; }
-    const ageMs = Date.now() - new Date(run.run_started_at || run.created_at).getTime();
-    const ok = run.conclusion === 'success';
-    const value = ok ? '✓' : '✗';
-    const level = ok ? classifyAge(ageMs / 3600000) : 'down';
-    setCard('cron', { value, unit: run.conclusion || run.status, ageMs, statusOverride: level });
-  } catch (e) {
-    setCard('cron', { value: 'ERR', statusOverride: 'down', status: e.message });
+function deriveCron() {
+  const r = state.rates, p = state.promos;
+  if (!r && !p) {
+    setCard('cron', { value: 'ERR', statusOverride: 'down' });
+    return;
   }
+  const rUpd = r?.updatedAtIso ? new Date(r.updatedAtIso) : null;
+  const pUpd = parseUpdatedAt(p?.updatedAt);
+  const latest = [rUpd, pUpd].filter(Boolean).sort((a, b) => b - a)[0];
+  if (!latest) { setCard('cron', { value: 'N/A', statusOverride: 'warn' }); return; }
+  const ageMs = Date.now() - latest.getTime();
+  const level = classifyAge(ageMs / 3600000);
+  setCard('cron', { value: 'OK', unit: 'last run', ageMs, statusOverride: level });
 }
 
 function escapeHtml(s) {
@@ -585,7 +588,8 @@ function updateNow() {
 }
 
 async function refreshAll() {
-  await Promise.all([loadRates(), loadPromos(), loadCron()]);
+  await Promise.all([loadRates(), loadPromos()]);
+  deriveCron();
 }
 
 updateNow();
