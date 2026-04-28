@@ -1,6 +1,6 @@
 {
   "schema_version": 3,
-  "checked_at": "2026-04-28T08:58:14.024530Z",
+  "checked_at": "2026-04-28T10:07:28.741405Z",
   "groups": {
     "daily": {
       "label": "하루 1회 갱신",
@@ -25,7 +25,7 @@
           "freshness": {
             "updated_at": "2026-04-28T04:03:28.936832+00:00",
             "updated_at_raw": "2026-04-28T13:03:28.936832+09:00",
-            "age_min": 294,
+            "age_min": 363,
             "fallback": true
           },
           "delta": null,
@@ -51,7 +51,7 @@
           "freshness": {
             "updated_at": "2026-04-28T04:03:00+00:00",
             "updated_at_raw": "2026-04-28 13:03 KST",
-            "age_min": 295,
+            "age_min": 364,
             "fallback": true
           },
           "delta": null,
@@ -80,13 +80,13 @@
           "status": "ok",
           "metrics": {
             "items": 49,
-            "size_bytes": 1137,
-            "hash": "4accc56360af768a93f778ebb2e7ba73d2b23876a80278ea43e561bb3d108419"
+            "size_bytes": 1124,
+            "hash": "5e9f65a6cd12dfea81110aa42dec3afe02358a0f5b6e82e657c89b2e9278c79b"
           },
           "freshness": {
-            "updated_at": "2026-04-28T08:00:40.596000+00:00",
-            "updated_at_raw": "2026-04-28T08:00:40.596Z",
-            "age_min": 57,
+            "updated_at": "2026-04-28T10:00:24.096000+00:00",
+            "updated_at_raw": "2026-04-28T10:00:24.096Z",
+            "age_min": 7,
             "fallback": false
           },
           "delta": null,
@@ -99,17 +99,17 @@
           "data_label": "은행별 환율 + 스프레드 (현찰/송금)",
           "url": "https://bank-exchange-rates.sehwan4696.workers.dev/",
           "page_url": "https://sudanghelp.co.kr/travel/exchange-analysis/",
-          "status": "unknown",
+          "status": "ok",
           "metrics": {
-            "items": 0,
-            "size_bytes": 54,
-            "hash": "a54673f82ed7e2d6f1599c749ff371794bca819a8bd59dacc3f50f18d0893cf8"
+            "items": 73,
+            "size_bytes": 15805,
+            "hash": "b344d15ce2176630128054b32e4db56dc98ae2d833203a7b77e1ff0c2ecdfd50"
           },
           "freshness": {
-            "updated_at": "",
-            "updated_at_raw": "None",
-            "age_min": null,
-            "fallback": true
+            "updated_at": "2026-04-28T09:25:32+00:00",
+            "updated_at_raw": "2026-04-28 18:25:32",
+            "age_min": 41,
+            "fallback": false
           },
           "delta": null,
           "http_status": 200

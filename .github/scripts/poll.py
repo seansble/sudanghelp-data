@@ -143,11 +143,15 @@ def fetch(url: str, headers: dict | None = None) -> tuple[bytes, dict]:
 def parse_updated(s) -> str:
     """Normalize various updatedAt formats to ISO 8601 UTC. Empty on failure.
 
-    Supports:
-    - ISO 8601 (with or without TZ, with or without 'Z')          rates.json
-    - "YYYY-MM-DD HH:MM KST"                                       featured_promos.json
-    - "YYYY-MM-DD HH:MM:SS" (naive — assumed KST)                  bank-exchange-rates worker
-    - int / float — Unix timestamp seconds OR milliseconds         optional fallback
+    Supports (in order of attempt):
+    - int / float — Unix timestamp (sec or ms)                     numeric ts
+    - ISO 8601 with explicit timezone (Z or ±HH:MM)                rates.json (updatedAtIso)
+    - "YYYY-MM-DD HH:MM KST" (explicit KST suffix)                 featured_promos.json
+    - naive "YYYY-MM-DD HH:MM:SS" / "YYYY-MM-DD HH:MM" — KST       bank-exchange-rates worker
+
+    NOTE: We deliberately do NOT use a permissive fromisoformat fallback.
+    Python 3.11+ parses naive ISO strings (e.g. "2026-04-28 18:25:32") which
+    we want to treat as KST, not assume system-local. Explicit-TZ ISO only.
     """
     if s is None or s == "":
         return ""
@@ -162,27 +166,37 @@ def parse_updated(s) -> str:
         except (OverflowError, ValueError, OSError):
             return ""
 
-    s = str(s)
+    s = str(s).strip()
+    if not s:
+        return ""
 
-    # ISO 8601
-    try:
-        dt = datetime.fromisoformat(s.replace("Z", "+00:00"))
-        return dt.astimezone(timezone.utc).isoformat()
-    except ValueError:
-        pass
+    # ISO 8601 with explicit timezone only (Z or ±HH:MM offset)
+    has_explicit_tz = (
+        s.endswith("Z")
+        or "+" in s[10:]                      # offset after date portion
+        or s.count("-") > 2                   # negative offset
+    )
+    if has_explicit_tz:
+        try:
+            dt = datetime.fromisoformat(s.replace("Z", "+00:00"))
+            return dt.astimezone(timezone.utc).isoformat()
+        except ValueError:
+            pass
 
     # "YYYY-MM-DD HH:MM KST"
     if s.endswith(" KST"):
         try:
-            dt = datetime.strptime(s[:-4], "%Y-%m-%d %H:%M")
+            dt = datetime.strptime(s[:-4].strip(), "%Y-%m-%d %H:%M")
             return (dt - timedelta(hours=9)).replace(tzinfo=timezone.utc).isoformat()
         except ValueError:
             pass
 
-    # naive "YYYY-MM-DD HH:MM:SS" — assume KST
+    # naive "YYYY-MM-DD HH:MM:SS" / "YYYY-MM-DD HH:MM" — treated as KST
+    # (also handles ISO 'T' separator naive form, e.g. "2026-04-28T18:25:32")
+    s_norm = s.replace("T", " ").split(".")[0]   # drop microseconds + normalize sep
     for fmt in ("%Y-%m-%d %H:%M:%S", "%Y-%m-%d %H:%M"):
         try:
-            dt = datetime.strptime(s, fmt)
+            dt = datetime.strptime(s_norm, fmt)
             return (dt - timedelta(hours=9)).replace(tzinfo=timezone.utc).isoformat()
         except ValueError:
             continue
