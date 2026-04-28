@@ -3,28 +3,28 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>sudanghelp-data · 실시간 헬스 모니터</title>
-<meta name="description" content="sudanghelp.co.kr 의 cron + API 신호가 정상 동작 중인지, fallback 발생 여부를 매시간 추적하는 모니터.">
+<title>sudanghelp-data · ops monitor</title>
+<meta name="description" content="sudanghelp.co.kr 의 cron · Worker · KV 신호 헬스 모니터.">
 <meta name="robots" content="noindex">
 
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
-<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
-<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css">
 
 <style>
 :root {
   --bg: #0a0a0a;
-  --surface: #131313;
-  --surface-2: #1a1a1a;
-  --border: #262626;
-  --text: #ededed;
-  --text-dim: #888;
-  --text-muted: #555;
+  --surface: #111;
+  --border: #1f1f1f;
+  --border-strong: #2a2a2a;
+  --text: #e8e8e8;
+  --text-2: #9a9a9a;
+  --text-3: #5a5a5a;
   --accent: #10b981;
-  --warn: #f59e0b;
-  --down: #ef4444;
-  --mono: ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", monospace;
+  --accent-dim: rgba(16, 185, 129, 0.12);
+  --warn: #d97706;
+  --down: #dc2626;
+  --pending: #404040;
+  --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -33,244 +33,280 @@ html, body {
   background: var(--bg);
   color: var(--text);
   font-family: "Pretendard", system-ui, -apple-system, sans-serif;
-  font-size: 15px;
-  line-height: 1.55;
+  font-size: 14px;
+  line-height: 1.5;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-a { color: var(--accent); text-decoration: none; }
-a:hover { text-decoration: underline; }
+a { color: inherit; text-decoration: none; }
+
+.tabular { font-variant-numeric: tabular-nums; }
 
 .container {
-  max-width: 920px;
+  max-width: 1240px;
   margin: 0 auto;
-  padding: 48px 24px 80px;
+  padding: 56px 32px 96px;
 }
 
-/* Header */
+/* ========== Header ========== */
 .hd {
   display: flex;
   justify-content: space-between;
-  align-items: flex-end;
-  margin-bottom: 32px;
-  padding-bottom: 24px;
+  align-items: baseline;
+  padding-bottom: 20px;
   border-bottom: 1px solid var(--border);
+  margin-bottom: 32px;
+  gap: 24px;
 }
-.hd h1 {
-  font-size: 22px;
+.hd-title {
+  font-size: 15px;
   font-weight: 600;
   letter-spacing: -0.01em;
-  margin-bottom: 4px;
 }
-.hd h1 .accent { color: var(--accent); }
-.hd .sub {
-  color: var(--text-dim);
-  font-size: 13px;
+.hd-title .accent { color: var(--accent); }
+.hd-sub {
+  font-size: 12px;
+  color: var(--text-3);
+  margin-top: 2px;
+  letter-spacing: 0.005em;
 }
-.hd .meta {
+.hd-meta {
   text-align: right;
   font-family: var(--mono);
-  font-size: 12px;
-  color: var(--text-muted);
+  font-size: 11px;
+  color: var(--text-3);
+  letter-spacing: 0.02em;
 }
-.hd .meta .now { color: var(--text-dim); }
+.hd-meta .now { color: var(--text-2); display: block; margin-bottom: 2px; }
 
-/* Banner */
-.banner {
+/* ========== Verdict bar ========== */
+.verdict {
   display: flex;
   align-items: center;
   gap: 14px;
-  padding: 18px 22px;
-  margin-bottom: 28px;
+  padding: 14px 18px;
+  margin-bottom: 40px;
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-left: 2px solid var(--pending);
 }
-.banner .verdict {
-  font-size: 18px;
-  font-weight: 600;
-  letter-spacing: -0.01em;
+.verdict.ok       { border-left-color: var(--accent); }
+.verdict.stale,
+.verdict.fallback,
+.verdict.deploy_pending { border-left-color: var(--warn); }
+.verdict.cron_down,
+.verdict.down     { border-left-color: var(--down); }
+
+.verdict-tag {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  font-weight: 500;
+  padding: 3px 8px;
+  border: 1px solid var(--border-strong);
+  color: var(--text-2);
 }
-.banner .desc {
+.verdict.ok .verdict-tag       { color: var(--accent); border-color: rgba(16, 185, 129, 0.3); }
+.verdict.stale .verdict-tag,
+.verdict.fallback .verdict-tag,
+.verdict.deploy_pending .verdict-tag { color: var(--warn); border-color: rgba(217, 119, 6, 0.3); }
+.verdict.down .verdict-tag,
+.verdict.cron_down .verdict-tag { color: var(--down); border-color: rgba(220, 38, 38, 0.3); }
+
+.verdict-text {
   font-size: 13px;
-  color: var(--text-dim);
-  margin-top: 2px;
-}
-.banner.ok       { border-left: 3px solid var(--accent); }
-.banner.stale    { border-left: 3px solid var(--warn); }
-.banner.fallback { border-left: 3px solid var(--warn); }
-.banner.down     { border-left: 3px solid var(--down); }
-.banner.ok       .verdict { color: var(--accent); }
-.banner.stale    .verdict { color: var(--warn); }
-.banner.fallback .verdict { color: var(--warn); }
-.banner.down     .verdict { color: var(--down); }
-
-.section { margin-bottom: 36px; }
-.section-title {
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  margin-bottom: 14px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
+  color: var(--text-2);
+  letter-spacing: -0.005em;
 }
 
-/* Source rows */
-.rows {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  overflow: hidden;
-}
-.row {
+/* ========== Groups grid ========== */
+.groups {
   display: grid;
-  grid-template-columns: 24px 1fr auto;
-  gap: 16px;
-  padding: 18px 22px;
-  border-bottom: 1px solid var(--surface-2);
-  align-items: flex-start;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 28px;
 }
-.row:last-child { border-bottom: none; }
-.row.pending { opacity: 0.6; }
 
-.row-dot-wrap {
+.group {
   display: flex;
-  justify-content: center;
-  padding-top: 6px;
-}
-.dot {
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-  background: var(--text-muted);
-  flex-shrink: 0;
-}
-.dot.ok       { background: var(--accent); box-shadow: 0 0 8px rgba(16, 185, 129, 0.4); }
-.dot.stale,
-.dot.fallback { background: var(--warn);   box-shadow: 0 0 8px rgba(245, 158, 11, 0.4); }
-.dot.down     { background: var(--down);   box-shadow: 0 0 8px rgba(239, 68, 68, 0.4); }
-.dot.loading,
-.dot.unknown,
-.dot.pending  { background: var(--text-muted); animation: pulse 1.4s ease-in-out infinite; }
-
-@keyframes pulse {
-  0%, 100% { opacity: 0.3; }
-  50% { opacity: 1; }
+  flex-direction: column;
+  gap: 12px;
 }
 
-.row-body { min-width: 0; }
-.row-name {
+.group-hd {
+  padding-bottom: 12px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid var(--border);
+}
+.group-cadence {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  color: var(--text-3);
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+.group-label {
   font-size: 14px;
   font-weight: 600;
   color: var(--text);
   letter-spacing: -0.01em;
-  margin-bottom: 4px;
 }
-.row-data {
-  font-size: 13px;
-  color: var(--text-dim);
-  margin-bottom: 4px;
-}
-.row-data .count {
-  font-family: var(--mono);
-  color: var(--text);
-}
-.row-tech {
+.group-desc {
   font-size: 11px;
   font-family: var(--mono);
-  color: var(--text-muted);
-  letter-spacing: 0.01em;
+  color: var(--text-3);
+  margin-top: 4px;
+  letter-spacing: 0.005em;
 }
-.row-name a {
-  color: var(--text);
-  text-decoration: none;
-  border-bottom: 1px dotted var(--text-muted);
-}
-.row-name a:hover {
-  color: var(--accent);
-  border-bottom-color: var(--accent);
-}
-.row-signals {
-  margin-top: 8px;
-  font-size: 11px;
-  font-family: var(--mono);
-  color: var(--text-muted);
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  flex-wrap: wrap;
-}
-.signal { white-space: nowrap; }
-.signal.ok { color: var(--accent); }
-.signal.stale, .signal.fallback { color: var(--warn); }
-.signal.down { color: var(--down); }
-.signal.unauthorized { color: var(--text-muted); font-style: italic; }
-.signal-sep { color: var(--text-muted); }
 
-.row-right {
-  text-align: right;
-  white-space: nowrap;
+/* ========== Source card ========== */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 16px 18px;
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
-  gap: 4px;
-  padding-top: 2px;
+  gap: 10px;
+  transition: border-color 120ms;
 }
-.row-age {
-  font-size: 12px;
-  font-family: var(--mono);
-  color: var(--text-dim);
+.card.pending { opacity: 0.55; }
+.card:hover { border-color: var(--border-strong); }
+
+.card-hd {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
 }
-.row-label {
-  font-size: 10px;
+.card-name {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  color: var(--text);
+  line-height: 1.35;
+}
+.card-name a {
+  color: inherit;
+  border-bottom: 1px dotted var(--text-3);
+  padding-bottom: 1px;
+}
+.card-name a:hover {
+  border-bottom-color: var(--accent);
+  color: var(--accent);
+}
+.card-status {
   font-family: var(--mono);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
+  font-size: 9px;
+  letter-spacing: 0.12em;
   font-weight: 500;
   padding: 2px 6px;
-  border-radius: 3px;
-  background: var(--surface-2);
-  border: 1px solid var(--border);
-  color: var(--text-muted);
-}
-.row-label.ok       { color: var(--accent); border-color: rgba(16, 185, 129, 0.3); }
-.row-label.stale,
-.row-label.fallback { color: var(--warn);   border-color: rgba(245, 158, 11, 0.3); }
-.row-label.down     { color: var(--down);   border-color: rgba(239, 68, 68, 0.3); }
-.row-fallback-badge {
-  font-size: 10px;
-  font-family: var(--mono);
+  border: 1px solid var(--border-strong);
+  color: var(--text-3);
+  flex-shrink: 0;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--warn);
+  line-height: 1.4;
+}
+.card-status.ok       { color: var(--accent); border-color: rgba(16, 185, 129, 0.3); }
+.card-status.stale,
+.card-status.fallback { color: var(--warn);   border-color: rgba(217, 119, 6, 0.3); }
+.card-status.down     { color: var(--down);   border-color: rgba(220, 38, 38, 0.3); }
+.card-status.pending  { color: var(--text-3); }
+
+.card-tech {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text-3);
+  letter-spacing: 0.005em;
+  line-height: 1.5;
 }
 
-/* Footer */
+.card-metrics {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 0;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+.metric-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+}
+.metric-label {
+  font-size: 11px;
+  color: var(--text-3);
+  font-family: var(--mono);
+  letter-spacing: 0.02em;
+}
+.metric-value {
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--text);
+  font-feature-settings: "tnum";
+}
+.metric-delta {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text-3);
+  margin-left: 6px;
+}
+.metric-delta.up   { color: var(--accent); }
+.metric-delta.down { color: var(--warn); }
+
+.card-signals {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text-3);
+  letter-spacing: 0.01em;
+}
+.signal { white-space: nowrap; }
+.signal.ok       { color: var(--accent); }
+.signal.stale,
+.signal.fallback { color: var(--warn); }
+.signal.down     { color: var(--down); }
+.signal-sep      { color: var(--text-3); }
+
+.card-pending-note {
+  font-size: 11px;
+  font-family: var(--mono);
+  color: var(--text-3);
+  letter-spacing: 0.01em;
+}
+
+/* ========== Footer ========== */
 .ft {
-  margin-top: 48px;
-  padding-top: 24px;
+  margin-top: 56px;
+  padding-top: 20px;
   border-top: 1px solid var(--border);
   display: flex;
   justify-content: space-between;
   align-items: center;
   flex-wrap: wrap;
-  gap: 12px;
-  font-size: 12px;
-  color: var(--text-muted);
+  gap: 16px;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text-3);
+  letter-spacing: 0.02em;
 }
-.ft .links { display: flex; gap: 18px; flex-wrap: wrap; }
-.ft .links a { color: var(--text-dim); }
-.ft .links a:hover { color: var(--accent); }
+.ft-links { display: flex; gap: 18px; flex-wrap: wrap; }
+.ft-links a { color: var(--text-2); }
+.ft-links a:hover { color: var(--accent); }
 
-@media (max-width: 640px) {
-  .container { padding: 32px 16px 60px; }
+/* ========== Responsive ========== */
+@media (max-width: 1080px) {
+  .groups { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 720px) {
+  .container { padding: 36px 18px 64px; }
+  .groups { grid-template-columns: 1fr; gap: 24px; }
   .hd { flex-direction: column; align-items: flex-start; gap: 12px; }
-  .hd .meta { text-align: left; }
-  .row { grid-template-columns: 20px 1fr; padding: 16px 18px; }
-  .row-right { grid-column: 2; align-items: flex-start; flex-direction: row; gap: 10px; padding-top: 4px; }
+  .hd-meta { text-align: left; }
 }
 </style>
 </head>
@@ -280,262 +316,245 @@ a:hover { text-decoration: underline; }
 
   <header class="hd">
     <div>
-      <h1>sudanghelp<span class="accent">-data</span></h1>
-      <div class="sub">실시간 헬스 모니터 · cron + Worker fallback 추적</div>
+      <div class="hd-title">sudanghelp<span class="accent">-data</span></div>
+      <div class="hd-sub">operational monitor · cron · worker · kv</div>
     </div>
-    <div class="meta">
-      <div class="now" id="now-ts">—</div>
-      <div>poll hourly · auto-refresh 60s</div>
+    <div class="hd-meta">
+      <span class="now" id="now-ts">—</span>
+      poll hourly · refresh 60s
     </div>
   </header>
 
-  <div class="banner loading" id="banner">
-    <span class="dot loading" id="banner-dot"></span>
-    <div>
-      <div class="verdict" id="banner-verdict">로딩 중…</div>
-      <div class="desc" id="banner-desc">최신 status 가져오는 중</div>
-    </div>
+  <div class="verdict" id="verdict">
+    <span class="verdict-tag" id="verdict-tag">LOADING</span>
+    <span class="verdict-text" id="verdict-text">최신 status 가져오는 중</span>
   </div>
 
-  <section class="section">
-    <div class="section-title">
-      <i class="ph ph-pulse"></i> 데이터 소스별 상태
-    </div>
-
-    <div class="rows">
-
-      <div class="row" data-row="rates">
-        <div class="row-dot-wrap"><span class="dot loading"></span></div>
-        <div class="row-body">
-          <div class="row-name"><a href="https://sudanghelp.co.kr/compoundcalc/rates/" target="_blank" rel="noopener">금리 비교 페이지</a></div>
-          <div class="row-data">FSS 예적금 금리 일일 공시 <span class="count" data-field="items">—</span></div>
-          <div class="row-tech">GitHub Actions cron · 매일 09:10 KST · 금감원 공시 API</div>
-          <div class="row-signals">
-            <span class="signal" data-field="cron-signal">cron —</span>
-            <span class="signal-sep">·</span>
-            <span class="signal" data-field="live-signal">live —</span>
-          </div>
-        </div>
-        <div class="row-right">
-          <div class="row-age" data-field="age">—</div>
-          <div class="row-label" data-field="label">—</div>
-        </div>
-      </div>
-
-      <div class="row" data-row="promos">
-        <div class="row-dot-wrap"><span class="dot loading"></span></div>
-        <div class="row-body">
-          <div class="row-name"><a href="https://sudanghelp.co.kr/compoundcalc/rates/#sns-promos" target="_blank" rel="noopener">금리 비교 페이지 · SNS 특판 탭</a></div>
-          <div class="row-data">SNS 적금 특판 (블로거 교차검증) <span class="count" data-field="items">—</span></div>
-          <div class="row-tech">GitHub Actions cron · 네이버 블로그 검색 + 카카오 Local API</div>
-          <div class="row-signals">
-            <span class="signal" data-field="cron-signal">cron —</span>
-            <span class="signal-sep">·</span>
-            <span class="signal" data-field="live-signal">live —</span>
-          </div>
-        </div>
-        <div class="row-right">
-          <div class="row-age" data-field="age">—</div>
-          <div class="row-label" data-field="label">—</div>
-        </div>
-      </div>
-
-      <div class="row pending" data-row="exchange">
-        <div class="row-dot-wrap"><span class="dot pending"></span></div>
-        <div class="row-body">
-          <div class="row-name"><a href="https://sudanghelp.co.kr/travel/exchange-calculator/" target="_blank" rel="noopener">환율 계산기 · 여행 비용 페이지</a></div>
-          <div class="row-data">일반 환율 (USD/JPY/EUR 등 base 변환)</div>
-          <div class="row-tech">Cloudflare Worker · sudanghelp-rates · ExchangeRate API 1시간 캐시</div>
-        </div>
-        <div class="row-right">
-          <div class="row-age">v2 예정</div>
-          <div class="row-label">PENDING</div>
-        </div>
-      </div>
-
-      <div class="row pending" data-row="bank-exchange">
-        <div class="row-dot-wrap"><span class="dot pending"></span></div>
-        <div class="row-body">
-          <div class="row-name"><a href="https://sudanghelp.co.kr/travel/exchange-analysis/" target="_blank" rel="noopener">환전 분석 페이지</a></div>
-          <div class="row-data">은행별 환율 + 스프레드 (현찰 매매 + 송금)</div>
-          <div class="row-tech">Cloudflare Worker · bank-exchange-rates → Supabase</div>
-        </div>
-        <div class="row-right">
-          <div class="row-age">v2 예정</div>
-          <div class="row-label">PENDING</div>
-        </div>
-      </div>
-
-      <div class="row pending" data-row="feedback">
-        <div class="row-dot-wrap"><span class="dot pending"></span></div>
-        <div class="row-body">
-          <div class="row-name"><a href="https://sudanghelp.co.kr/travel/" target="_blank" rel="noopener">여행 페이지 전반 · 피드백 위젯</a></div>
-          <div class="row-data">리뷰 · 좋아요/싫어요 · 조회수</div>
-          <div class="row-tech">Cloudflare Worker · sudanghelpfeedback (KV)</div>
-        </div>
-        <div class="row-right">
-          <div class="row-age">v2 예정</div>
-          <div class="row-label">PENDING</div>
-        </div>
-      </div>
-
-    </div>
-  </section>
+  <div class="groups" id="groups">
+    <!-- 클라이언트 렌더 -->
+  </div>
 
   <footer class="ft">
-    <div>v0 · operational monitor for sudanghelp.co.kr</div>
-    <div class="links">
-      <a href="https://sudanghelp.co.kr">Main site</a>
-      <a href="https://github.com/seansble/sudanghelp-data">Repo</a>
+    <div>v1 · schema 3 · groups by cadence</div>
+    <div class="ft-links">
+      <a href="https://sudanghelp.co.kr">main site</a>
+      <a href="https://github.com/seansble/sudanghelp-data">repo</a>
       <a href="https://github.com/seansble/sudanghelp-data/blob/main/status/latest.json">status.json</a>
-      <a href="https://github.com/seansble/sudanghelp-data/blob/main/LICENSE">CC-BY-4.0</a>
+      <a href="https://github.com/seansble/sudanghelp-data/blob/main/LICENSE">cc-by-4.0</a>
     </div>
   </footer>
 
 </div>
 
 <script>
+'use strict';
+
 const STATUS_URL = 'status/latest.json';
 
-const VERDICT_COPY = {
-  ok:             { text: 'ALL HEALTHY',     desc: 'cron 정상 + 라이브 fresh + fallback 없음' },
-  stale:          { text: 'CRON SLOW',       desc: 'cron 실행됐지만 25시간+ 지났음' },
-  fallback:       { text: 'FALLBACK ACTIVE', desc: 'cron 실행됐지만 콘텐츠 미변동 — 상위 API 의심' },
-  deploy_pending: { text: 'DEPLOY PENDING',  desc: 'cron 정상, 라이브 사이트 배포만 안 됨 (수동 dist 드래그 필요)' },
-  cron_down:      { text: 'CRON DOWN',       desc: 'GitHub Actions cron 자체가 멈춤 — 진짜 문제' },
-  down:           { text: 'SERVICE DOWN',    desc: '하나 이상의 신호 fetch 실패' },
-  loading:        { text: '로딩 중…',         desc: '최신 status 가져오는 중' },
-  unknown:        { text: 'NO DATA',         desc: 'status/latest.json 미생성 — 첫 poll 대기 중' },
+const VERDICT = {
+  ok:             ['HEALTHY',         '모든 cron 정상 · 라이브 fresh · fallback 없음'],
+  stale:          ['CRON SLOW',       'cron 실행됐지만 임계 시간 초과'],
+  fallback:       ['FALLBACK',        'cron 실행됐지만 콘텐츠 미변동 (상위 API 의심)'],
+  deploy_pending: ['DEPLOY PENDING',  'cron 정상 · 라이브만 stale (배포 또는 캐시 문제)'],
+  cron_down:      ['CRON DOWN',       'GitHub Actions cron 자체가 멈춤'],
+  down:           ['DOWN',            '하나 이상의 신호 fetch 실패'],
+  loading:        ['LOADING',         '최신 status 가져오는 중'],
+  unknown:        ['NO DATA',         'status/latest.json 미생성'],
 };
 
-const LABEL = {
-  ok: 'HEALTHY', stale: 'STALE', down: 'DOWN',
-  fallback: 'FALLBACK', unknown: '—', pending: 'PENDING',
-  deploy_pending: 'DEPLOY', cron_down: 'CRON DOWN', unauthorized: 'NO TOKEN',
+const STATUS_LABEL = {
+  ok: 'OK', stale: 'STALE', down: 'DOWN', fallback: 'FALLBACK',
+  pending: 'PENDING', unknown: '—', unauthorized: 'NO TOKEN',
 };
 
-function formatAge(min) {
+function fmtAge(min) {
   if (min == null) return '—';
-  if (min < 1) return '방금 전';
-  if (min < 60) return `${min}분 전`;
+  if (min < 1) return '방금';
+  if (min < 60) return `${min}m`;
   const hr = Math.floor(min / 60);
-  if (hr < 24) return `${hr}시간 전`;
+  if (hr < 24) return `${hr}h`;
   const day = Math.floor(hr / 24);
-  return `${day}일 전`;
+  return `${day}d`;
 }
 
-function formatItems(n) {
-  if (n == null) return '';
-  return `(${n.toLocaleString('ko-KR')} items)`;
+function fmtItems(n) {
+  if (n == null) return '—';
+  return n.toLocaleString('en-US');
 }
 
-function bannerClass(level) {
-  // overall verdict → banner color class
-  if (level === 'cron_down' || level === 'down') return 'down';
-  if (level === 'deploy_pending' || level === 'fallback' || level === 'stale') return 'stale';
-  if (level === 'ok') return 'ok';
-  return 'loading';
+function fmtSize(bytes) {
+  if (bytes == null) return '—';
+  if (bytes < 1024) return `${bytes}B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)}KB`;
+  return `${(bytes / 1024 / 1024).toFixed(2)}MB`;
 }
 
-function setBanner(level) {
-  const banner = document.getElementById('banner');
-  const dot = document.getElementById('banner-dot');
-  const verdict = document.getElementById('banner-verdict');
-  const desc = document.getElementById('banner-desc');
-  const cls = bannerClass(level);
-  banner.className = `banner ${cls}`;
-  dot.className = `dot ${cls === 'loading' ? 'loading' : cls}`;
-  verdict.textContent = (VERDICT_COPY[level] || VERDICT_COPY.unknown).text;
-  desc.textContent = (VERDICT_COPY[level] || VERDICT_COPY.unknown).desc;
+function fmtDelta(v, kind) {
+  if (v == null) return null;
+  if (v === 0) return '±0';
+  const sign = v > 0 ? '+' : '';
+  if (kind === 'size') return sign + fmtSize(Math.abs(v)).replace(/^/, v > 0 ? '+' : '-');
+  return sign + v.toLocaleString('en-US');
 }
 
-function setSignal(el, label, level, ageMin) {
-  if (!el) return;
-  const ageStr = ageMin != null ? ` ${formatAge(ageMin)}` : '';
-  el.className = `signal ${level || ''}`;
-  if (level === 'unauthorized') {
-    el.textContent = `${label}: token 미설정`;
-  } else if (level === 'ok') {
-    el.textContent = `${label} OK${ageStr}`;
-  } else if (level === 'stale') {
-    el.textContent = `${label} STALE${ageStr}`;
-  } else if (level === 'down') {
-    el.textContent = `${label} DOWN${ageStr}`;
+function setVerdict(level) {
+  const [tag, desc] = VERDICT[level] || VERDICT.unknown;
+  const el = document.getElementById('verdict');
+  el.className = `verdict ${level || 'unknown'}`;
+  document.getElementById('verdict-tag').textContent = tag;
+  document.getElementById('verdict-text').textContent = desc;
+}
+
+function combinedStatus(src) {
+  // pending sources stay pending
+  if (src.status === 'pending') return 'pending';
+  const cron = src.cron?.status;
+  const live = src.freshness?.fallback ? 'fallback' : src.status;
+  if (cron === 'down') return 'down';
+  if (cron === 'stale') return 'stale';
+  if (cron === 'ok' && (live === 'down' || live === 'stale')) return 'deploy_pending';
+  if (live === 'fallback') return 'fallback';
+  if (live === 'ok') return 'ok';
+  return live || 'unknown';
+}
+
+function statusToTag(s) {
+  if (s === 'deploy_pending') return 'DEPLOY';
+  return STATUS_LABEL[s] || s.toUpperCase();
+}
+
+function statusToClass(s) {
+  if (s === 'deploy_pending' || s === 'fallback') return 'stale';
+  if (s === 'unauthorized') return 'pending';
+  return s;
+}
+
+function renderSignal(label, level, age) {
+  if (level === 'unauthorized') return `${label}: no token`;
+  if (level == null) return `${label} —`;
+  const ageStr = age != null ? ` ${fmtAge(age)}` : '';
+  return `${label} ${(STATUS_LABEL[level] || level).toUpperCase()}${ageStr}`;
+}
+
+function renderCard(srcKey, src) {
+  const combined = combinedStatus(src);
+  const cls = statusToClass(combined);
+  const isPending = src.status === 'pending';
+
+  let metricsHtml = '';
+  if (!isPending && src.metrics) {
+    const itemsDelta = src.delta ? fmtDelta(src.delta.items, 'items') : null;
+    const sizeDelta = src.delta ? fmtDelta(src.delta.size_bytes, 'size') : null;
+    const itemsDeltaCls = src.delta?.items != null
+      ? (src.delta.items > 0 ? 'up' : src.delta.items < 0 ? 'down' : '')
+      : '';
+    metricsHtml = `
+      <div class="card-metrics">
+        <div class="metric-row">
+          <span class="metric-label">items</span>
+          <span>
+            <span class="metric-value">${fmtItems(src.metrics.items)}</span>
+            ${itemsDelta ? `<span class="metric-delta ${itemsDeltaCls}">${itemsDelta}</span>` : ''}
+          </span>
+        </div>
+        <div class="metric-row">
+          <span class="metric-label">size</span>
+          <span>
+            <span class="metric-value">${fmtSize(src.metrics.size_bytes)}</span>
+            ${sizeDelta ? `<span class="metric-delta">${sizeDelta}</span>` : ''}
+          </span>
+        </div>
+      </div>
+    `;
+  }
+
+  let signalsHtml = '';
+  if (!isPending) {
+    const cron = src.cron;
+    const liveLevel = src.freshness?.fallback ? 'fallback' : src.status;
+    const liveAge = src.freshness?.age_min;
+    if (cron) {
+      signalsHtml = `
+        <div class="card-signals">
+          <span class="signal ${statusToClass(cron.status)}">${renderSignal('cron', cron.status, cron.age_min)}</span>
+          <span class="signal-sep">·</span>
+          <span class="signal ${statusToClass(liveLevel)}">${renderSignal('live', liveLevel, liveAge)}</span>
+        </div>
+      `;
+    } else {
+      signalsHtml = `
+        <div class="card-signals">
+          <span class="signal ${statusToClass(liveLevel)}">${renderSignal('live', liveLevel, liveAge)}</span>
+        </div>
+      `;
+    }
   } else {
-    el.textContent = `${label} —`;
+    signalsHtml = `<div class="card-pending-note">${src.data_label || ''}</div>`;
   }
+
+  const link = src.page_url
+    ? `<a href="${src.page_url}" target="_blank" rel="noopener">${src.page_label}</a>`
+    : src.page_label;
+
+  return `
+    <article class="card ${isPending ? 'pending' : ''}">
+      <div class="card-hd">
+        <div class="card-name">${link}</div>
+        <span class="card-status ${cls}">${statusToTag(combined)}</span>
+      </div>
+      <div class="card-tech">${src.tech_context || ''}</div>
+      ${metricsHtml}
+      ${signalsHtml}
+    </article>
+  `;
 }
 
-function setRow(name, srcLive, srcCron) {
-  const row = document.querySelector(`[data-row="${name}"]`);
-  if (!row) return;
-  const dot = row.querySelector('.dot');
-  const itemsEl = row.querySelector('[data-field="items"]');
-  const ageEl = row.querySelector('[data-field="age"]');
-  const labelEl = row.querySelector('[data-field="label"]');
-  const cronSig = row.querySelector('[data-field="cron-signal"]');
-  const liveSig = row.querySelector('[data-field="live-signal"]');
+function renderGroup(groupKey, group) {
+  const cards = Object.entries(group.sources)
+    .map(([k, s]) => renderCard(k, s))
+    .join('');
 
-  // Compute combined level
-  // Priority: cron_down > deploy_pending > fallback > ok
-  const cronLevel = srcCron?.status || 'unknown';
-  let liveLevel = srcLive?.status || 'unknown';
-  if (srcLive?.fallback && liveLevel === 'ok') liveLevel = 'fallback';
-
-  let combined = 'unknown';
-  if (cronLevel === 'down') combined = 'down';
-  else if (cronLevel === 'stale') combined = 'stale';
-  else if (cronLevel === 'ok' && (liveLevel === 'down' || liveLevel === 'stale')) combined = 'deploy_pending';
-  else if (liveLevel === 'fallback') combined = 'fallback';
-  else if (cronLevel === 'unauthorized' && liveLevel === 'ok') combined = 'ok';
-  else if (cronLevel === 'unauthorized') combined = liveLevel === 'down' || liveLevel === 'stale' ? 'down' : 'unknown';
-  else if (liveLevel === 'ok') combined = 'ok';
-  else combined = liveLevel;
-
-  // Dot mapping
-  const dotClass = combined === 'deploy_pending' ? 'stale'
-                 : combined === 'fallback' ? 'fallback'
-                 : combined;
-  dot.className = `dot ${dotClass}`;
-
-  // Items + age (use live data; fallback to cron commit time if no live)
-  if (itemsEl) itemsEl.textContent = formatItems(srcLive?.items);
-  if (ageEl) ageEl.textContent = formatAge(srcLive?.age_min);
-  if (labelEl) {
-    labelEl.textContent = LABEL[combined] || combined.toUpperCase();
-    labelEl.className = `row-label ${dotClass}`;
-  }
-
-  setSignal(cronSig, 'cron', cronLevel, srcCron?.age_min);
-  setSignal(liveSig, 'live', liveLevel, srcLive?.age_min);
+  return `
+    <section class="group" data-group="${groupKey}">
+      <header class="group-hd">
+        <div class="group-cadence">${groupKey}</div>
+        <div class="group-label">${group.label}</div>
+        <div class="group-desc">${group.description}</div>
+      </header>
+      ${cards}
+    </section>
+  `;
 }
 
 async function refresh() {
   try {
     const r = await fetch(STATUS_URL + '?_=' + Date.now(), { cache: 'no-store' });
     if (!r.ok) throw new Error(r.status);
-    const snapshot = await r.json();
+    const snap = await r.json();
 
-    setBanner(snapshot.overall || 'unknown');
-    setRow('rates',  snapshot.sources?.rates,  snapshot.cron?.rates);
-    setRow('promos', snapshot.sources?.promos, snapshot.cron?.promos);
+    setVerdict(snap.overall || 'unknown');
+
+    const groupsHtml = Object.entries(snap.groups || {})
+      .map(([gk, g]) => renderGroup(gk, g))
+      .join('');
+    document.getElementById('groups').innerHTML = groupsHtml;
   } catch (e) {
-    setBanner('unknown');
-    setRow('rates', null, null);
-    setRow('promos', null, null);
+    setVerdict('unknown');
+    document.getElementById('groups').innerHTML = '';
     console.warn('status fetch failed:', e.message);
   }
 }
 
-function updateNow() {
+function tickClock() {
   const d = new Date();
   const pad = n => String(n).padStart(2, '0');
   document.getElementById('now-ts').textContent =
-    `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())} KST`;
+    `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ` +
+    `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())} KST`;
 }
 
-updateNow();
-setInterval(updateNow, 1000);
+tickClock();
+setInterval(tickClock, 1000);
 refresh();
 setInterval(refresh, 60000);
 </script>

@@ -1,47 +1,119 @@
 {
-  "checked_at": "2026-04-28T06:26:06.033850Z",
-  "schema_version": 2,
-  "cron": {
-    "rates": {
-      "status": "ok",
-      "last_commit_at": "2026-04-28T04:03:52Z",
-      "age_min": 142,
-      "sha": "42d4191",
-      "message": "chore(rates): update rates 2026-04-28"
+  "schema_version": 3,
+  "checked_at": "2026-04-28T07:19:17.099059Z",
+  "groups": {
+    "daily": {
+      "label": "하루 1회 갱신",
+      "description": "GitHub Actions cron · 09:10 KST 의도",
+      "trigger": "github-actions",
+      "history_policy": "full",
+      "retention_days": 365,
+      "sources": {
+        "rates": {
+          "label": "금리 비교 (FSS)",
+          "page_label": "금리 비교 페이지",
+          "tech_context": "GitHub Actions cron · 금감원 공시 OpenAPI",
+          "data_label": "FSS 예적금 금리 일일 공시",
+          "url": "https://sudanghelp.co.kr/compoundcalc/rates/rates.json",
+          "page_url": "https://sudanghelp.co.kr/compoundcalc/rates/",
+          "status": "ok",
+          "metrics": {
+            "items": 1666,
+            "size_bytes": 1723070,
+            "hash": "810008a751e2eadc17aeea71c0b0d4c35668c1a82347251fc79b2d5c13f8bef6"
+          },
+          "freshness": {
+            "updated_at": "2026-04-28T04:03:28.936832+00:00",
+            "updated_at_raw": "2026-04-28T13:03:28.936832+09:00",
+            "age_min": 195,
+            "fallback": true
+          },
+          "delta": null,
+          "http_status": 200,
+          "cron": {
+            "status": "unauthorized",
+            "note": "MAIN_REPO_PAT secret 미설정"
+          }
+        },
+        "promos": {
+          "label": "SNS 화제 특판",
+          "page_label": "금리 비교 페이지 · SNS 특판 탭",
+          "tech_context": "네이버 블로그 검색 + 카카오 Local API",
+          "data_label": "SNS 적금 특판 (블로거 교차검증)",
+          "url": "https://sudanghelp.co.kr/compoundcalc/rates/featured_promos.json",
+          "page_url": "https://sudanghelp.co.kr/compoundcalc/rates/#sns-promos",
+          "status": "ok",
+          "metrics": {
+            "items": 8,
+            "size_bytes": 17295,
+            "hash": "3459060c20c8dbb4e45d983afa36f35f7310756accb664ad4ca2e4fdbf75152f"
+          },
+          "freshness": {
+            "updated_at": "2026-04-28T04:03:00+00:00",
+            "updated_at_raw": "2026-04-28 13:03 KST",
+            "age_min": 196,
+            "fallback": true
+          },
+          "delta": null,
+          "http_status": 200,
+          "cron": {
+            "status": "unauthorized",
+            "note": "MAIN_REPO_PAT secret 미설정"
+          }
+        }
+      }
     },
-    "promos": {
-      "status": "ok",
-      "last_commit_at": "2026-04-28T04:03:52Z",
-      "age_min": 142,
-      "sha": "42d4191",
-      "message": "chore(rates): update rates 2026-04-28"
+    "hourly": {
+      "label": "시간 단위 갱신",
+      "description": "Cloudflare Worker · 매시간 fetch",
+      "trigger": "cloudflare-worker",
+      "history_policy": "metrics_only",
+      "retention_days": 30,
+      "sources": {
+        "exchange-rates": {
+          "label": "일반 환율 (USD/JPY/EUR …)",
+          "page_label": "환율 계산기 · 여행 비용 페이지",
+          "tech_context": "Cloudflare Worker · sudanghelp-rates",
+          "data_label": "ExchangeRate API base 변환",
+          "page_url": "https://sudanghelp.co.kr/travel/exchange-calculator/",
+          "status": "pending",
+          "metrics": null,
+          "freshness": null,
+          "delta": null
+        },
+        "bank-exchange": {
+          "label": "은행별 환율 + 스프레드",
+          "page_label": "환전 분석 페이지",
+          "tech_context": "Cloudflare Worker · bank-exchange-rates → Supabase",
+          "data_label": "은행별 환율 + 스프레드 (현찰/송금)",
+          "page_url": "https://sudanghelp.co.kr/travel/exchange-analysis/",
+          "status": "pending",
+          "metrics": null,
+          "freshness": null,
+          "delta": null
+        }
+      }
+    },
+    "realtime": {
+      "label": "실시간 (On-demand)",
+      "description": "Cloudflare Worker · KV 즉시 반영",
+      "trigger": "cloudflare-worker-kv",
+      "history_policy": "none",
+      "retention_days": 0,
+      "sources": {
+        "feedback": {
+          "label": "피드백 위젯",
+          "page_label": "여행 페이지 전반 · 피드백 위젯",
+          "tech_context": "Cloudflare Worker · sudanghelpfeedback (KV)",
+          "data_label": "리뷰 · 좋아요/싫어요 · 조회수",
+          "page_url": "https://sudanghelp.co.kr/travel/",
+          "status": "pending",
+          "metrics": null,
+          "freshness": null,
+          "delta": null
+        }
+      }
     }
   },
-  "sources": {
-    "rates": {
-      "url": "https://sudanghelp.co.kr/compoundcalc/rates/rates.json",
-      "status": "ok",
-      "http_status": 200,
-      "updated_at": "2026-04-28T04:03:28.936832+00:00",
-      "updated_at_raw": "2026-04-28T13:03:28.936832+09:00",
-      "age_min": 142,
-      "items": 1666,
-      "hash": "810008a751e2eadc17aeea71c0b0d4c35668c1a82347251fc79b2d5c13f8bef6",
-      "fallback": false,
-      "size_bytes": 1723070
-    },
-    "promos": {
-      "url": "https://sudanghelp.co.kr/compoundcalc/rates/featured_promos.json",
-      "status": "ok",
-      "http_status": 200,
-      "updated_at": "2026-04-28T04:03:00+00:00",
-      "updated_at_raw": "2026-04-28 13:03 KST",
-      "age_min": 143,
-      "items": 8,
-      "hash": "3459060c20c8dbb4e45d983afa36f35f7310756accb664ad4ca2e4fdbf75152f",
-      "fallback": false,
-      "size_bytes": 17295
-    }
-  },
-  "overall": "ok"
+  "overall": "fallback"
 }
