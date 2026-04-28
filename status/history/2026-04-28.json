@@ -1,6 +1,6 @@
 {
   "schema_version": 3,
-  "checked_at": "2026-04-28T22:43:12.656004Z",
+  "checked_at": "2026-04-28T23:42:13.077554Z",
   "groups": {
     "daily": {
       "label": "하루 1회 갱신",
@@ -25,7 +25,7 @@
           "freshness": {
             "updated_at": "2026-04-28T04:03:28.936832+00:00",
             "updated_at_raw": "2026-04-28T13:03:28.936832+09:00",
-            "age_min": 1119,
+            "age_min": 1178,
             "fallback": true
           },
           "delta": null,
@@ -33,7 +33,7 @@
           "cron": {
             "status": "ok",
             "last_commit_at": "2026-04-28T04:03:52Z",
-            "age_min": 1119,
+            "age_min": 1178,
             "sha": "42d4191",
             "message": "chore(rates): update rates 2026-04-28"
           }
@@ -54,7 +54,7 @@
           "freshness": {
             "updated_at": "2026-04-28T04:03:00+00:00",
             "updated_at_raw": "2026-04-28 13:03 KST",
-            "age_min": 1120,
+            "age_min": 1179,
             "fallback": true
           },
           "delta": null,
@@ -62,7 +62,7 @@
           "cron": {
             "status": "ok",
             "last_commit_at": "2026-04-28T04:03:52Z",
-            "age_min": 1119,
+            "age_min": 1178,
             "sha": "42d4191",
             "message": "chore(rates): update rates 2026-04-28"
           }
@@ -86,13 +86,13 @@
           "status": "ok",
           "metrics": {
             "items": 49,
-            "size_bytes": 1120,
-            "hash": "5f8cc52a2390b7598d93329bea560b9dc93ba7fc840bdb90110979bf6d1c08f3"
+            "size_bytes": 1119,
+            "hash": "c88cd34d4d8bc873e028d422f1b0a6b08ebc17649b042094674ad446994f3890"
           },
           "freshness": {
-            "updated_at": "2026-04-28T22:00:21.413000+00:00",
-            "updated_at_raw": "2026-04-28T22:00:21.413Z",
-            "age_min": 42,
+            "updated_at": "2026-04-28T23:00:18.638000+00:00",
+            "updated_at_raw": "2026-04-28T23:00:18.638Z",
+            "age_min": 41,
             "fallback": false
           },
           "delta": null,
@@ -114,8 +114,8 @@
           "freshness": {
             "updated_at": "2026-04-28T22:01:32+00:00",
             "updated_at_raw": "2026-04-29 07:01:32",
-            "age_min": 41,
-            "fallback": false
+            "age_min": 100,
+            "fallback": true
           },
           "delta": null,
           "http_status": 200
