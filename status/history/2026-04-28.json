@@ -1,0 +1,31 @@
+{
+  "checked_at": "2026-04-28T01:05:24.266704Z",
+  "schema_version": 1,
+  "sources": {
+    "rates": {
+      "url": "https://sudanghelp.co.kr/compoundcalc/rates/rates.json",
+      "status": "down",
+      "http_status": 200,
+      "updated_at": "2026-04-24T03:48:10.865000+00:00",
+      "updated_at_raw": "2026-04-24T12:48:10.865000+09:00",
+      "age_min": 5597,
+      "items": 1666,
+      "hash": "81724ae9d6df5d1755ba6b501cce55a88bf8702ddf6396586bc635463c06b4e5",
+      "fallback": false,
+      "size_bytes": 1765847
+    },
+    "promos": {
+      "url": "https://sudanghelp.co.kr/compoundcalc/rates/featured_promos.json",
+      "status": "down",
+      "http_status": 200,
+      "updated_at": "2026-04-24T03:48:00+00:00",
+      "updated_at_raw": "2026-04-24 12:48 KST",
+      "age_min": 5597,
+      "items": 11,
+      "hash": "0fa179f507cedad98853366916bd17414726a3292a695ac198b052aee2e513ea",
+      "fallback": false,
+      "size_bytes": 22577
+    }
+  },
+  "overall": "down"
+}
