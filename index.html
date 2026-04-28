@@ -42,7 +42,7 @@ a { color: var(--accent); text-decoration: none; }
 a:hover { text-decoration: underline; }
 
 .container {
-  max-width: 880px;
+  max-width: 920px;
   margin: 0 auto;
   padding: 48px 24px 80px;
 }
@@ -52,7 +52,7 @@ a:hover { text-decoration: underline; }
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
-  margin-bottom: 36px;
+  margin-bottom: 32px;
   padding-bottom: 24px;
   border-bottom: 1px solid var(--border);
 }
@@ -75,7 +75,7 @@ a:hover { text-decoration: underline; }
 }
 .hd .meta .now { color: var(--text-dim); }
 
-/* Overall banner */
+/* Banner */
 .banner {
   display: flex;
   align-items: center;
@@ -96,14 +96,14 @@ a:hover { text-decoration: underline; }
   color: var(--text-dim);
   margin-top: 2px;
 }
-.banner.ok    { border-left: 3px solid var(--accent); }
-.banner.stale { border-left: 3px solid var(--warn); }
+.banner.ok       { border-left: 3px solid var(--accent); }
+.banner.stale    { border-left: 3px solid var(--warn); }
 .banner.fallback { border-left: 3px solid var(--warn); }
-.banner.down  { border-left: 3px solid var(--down); }
-.banner.ok    .verdict { color: var(--accent); }
-.banner.stale .verdict { color: var(--warn); }
+.banner.down     { border-left: 3px solid var(--down); }
+.banner.ok       .verdict { color: var(--accent); }
+.banner.stale    .verdict { color: var(--warn); }
 .banner.fallback .verdict { color: var(--warn); }
-.banner.down  .verdict { color: var(--down); }
+.banner.down     .verdict { color: var(--down); }
 
 .section { margin-bottom: 36px; }
 .section-title {
@@ -118,86 +118,110 @@ a:hover { text-decoration: underline; }
   gap: 8px;
 }
 
-.status-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 12px;
-}
-.card {
+/* Source rows */
+.rows {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 8px;
-  padding: 18px 20px;
+  overflow: hidden;
 }
-.card-head {
+.row {
+  display: grid;
+  grid-template-columns: 24px 1fr auto;
+  gap: 16px;
+  padding: 18px 22px;
+  border-bottom: 1px solid var(--surface-2);
+  align-items: flex-start;
+}
+.row:last-child { border-bottom: none; }
+.row.pending { opacity: 0.6; }
+
+.row-dot-wrap {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 14px;
-}
-.card-name {
-  font-size: 13px;
-  color: var(--text-dim);
-  font-weight: 500;
+  justify-content: center;
+  padding-top: 6px;
 }
 .dot {
-  width: 8px;
-  height: 8px;
+  width: 9px;
+  height: 9px;
   border-radius: 50%;
   background: var(--text-muted);
   flex-shrink: 0;
 }
-.dot.ok { background: var(--accent); box-shadow: 0 0 8px rgba(16, 185, 129, 0.4); }
-.dot.stale, .dot.fallback { background: var(--warn); box-shadow: 0 0 8px rgba(245, 158, 11, 0.4); }
-.dot.down { background: var(--down); box-shadow: 0 0 8px rgba(239, 68, 68, 0.4); }
-.dot.loading, .dot.unknown, .dot.pending { background: var(--text-muted); animation: pulse 1.4s ease-in-out infinite; }
+.dot.ok       { background: var(--accent); box-shadow: 0 0 8px rgba(16, 185, 129, 0.4); }
+.dot.stale,
+.dot.fallback { background: var(--warn);   box-shadow: 0 0 8px rgba(245, 158, 11, 0.4); }
+.dot.down     { background: var(--down);   box-shadow: 0 0 8px rgba(239, 68, 68, 0.4); }
+.dot.loading,
+.dot.unknown,
+.dot.pending  { background: var(--text-muted); animation: pulse 1.4s ease-in-out infinite; }
 
 @keyframes pulse {
   0%, 100% { opacity: 0.3; }
   50% { opacity: 1; }
 }
 
-.card-value {
-  font-family: var(--mono);
-  font-size: 20px;
-  font-weight: 500;
-  letter-spacing: -0.02em;
-  margin-bottom: 6px;
+.row-body { min-width: 0; }
+.row-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: -0.01em;
+  margin-bottom: 4px;
 }
-.card-value .unit {
-  font-size: 12px;
+.row-data {
+  font-size: 13px;
   color: var(--text-dim);
-  font-weight: 400;
-  margin-left: 4px;
+  margin-bottom: 4px;
 }
-.card-meta {
+.row-data .count {
   font-family: var(--mono);
+  color: var(--text);
+}
+.row-tech {
   font-size: 11px;
+  font-family: var(--mono);
   color: var(--text-muted);
+  letter-spacing: 0.01em;
+}
+
+.row-right {
+  text-align: right;
+  white-space: nowrap;
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 6px;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  padding-top: 2px;
 }
-.card-meta .label {
+.row-age {
+  font-size: 12px;
+  font-family: var(--mono);
+  color: var(--text-dim);
+}
+.row-label {
+  font-size: 10px;
+  font-family: var(--mono);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-.card-meta .label.ok { color: var(--accent); }
-.card-meta .label.stale, .card-meta .label.fallback { color: var(--warn); }
-.card-meta .label.down { color: var(--down); }
-.card-meta .badge {
-  display: inline-block;
+  letter-spacing: 0.08em;
+  font-weight: 500;
   padding: 2px 6px;
   border-radius: 3px;
   background: var(--surface-2);
   border: 1px solid var(--border);
+  color: var(--text-muted);
+}
+.row-label.ok       { color: var(--accent); border-color: rgba(16, 185, 129, 0.3); }
+.row-label.stale,
+.row-label.fallback { color: var(--warn);   border-color: rgba(245, 158, 11, 0.3); }
+.row-label.down     { color: var(--down);   border-color: rgba(239, 68, 68, 0.3); }
+.row-fallback-badge {
   font-size: 10px;
+  font-family: var(--mono);
   text-transform: uppercase;
   letter-spacing: 0.05em;
+  color: var(--warn);
 }
-.card-meta .badge.fallback { color: var(--warn); border-color: var(--warn); }
 
 /* Footer */
 .ft {
@@ -216,10 +240,12 @@ a:hover { text-decoration: underline; }
 .ft .links a { color: var(--text-dim); }
 .ft .links a:hover { color: var(--accent); }
 
-@media (max-width: 600px) {
+@media (max-width: 640px) {
   .container { padding: 32px 16px 60px; }
   .hd { flex-direction: column; align-items: flex-start; gap: 12px; }
   .hd .meta { text-align: left; }
+  .row { grid-template-columns: 20px 1fr; padding: 16px 18px; }
+  .row-right { grid-column: 2; align-items: flex-start; flex-direction: row; gap: 10px; padding-top: 4px; }
 }
 </style>
 </head>
@@ -230,7 +256,7 @@ a:hover { text-decoration: underline; }
   <header class="hd">
     <div>
       <h1>sudanghelp<span class="accent">-data</span></h1>
-      <div class="sub">실시간 헬스 모니터 · cron + API fallback 추적</div>
+      <div class="sub">실시간 헬스 모니터 · cron + Worker fallback 추적</div>
     </div>
     <div class="meta">
       <div class="now" id="now-ts">—</div>
@@ -248,57 +274,75 @@ a:hover { text-decoration: underline; }
 
   <section class="section">
     <div class="section-title">
-      <i class="ph ph-pulse"></i> 데이터 신선도
+      <i class="ph ph-pulse"></i> 데이터 소스별 상태
     </div>
-    <div class="status-grid">
 
-      <article class="card" data-card="rates">
-        <div class="card-head">
-          <span class="card-name">FSS 예적금 금리</span>
-          <span class="dot loading"></span>
-        </div>
-        <div class="card-value" data-field="value">—</div>
-        <div class="card-meta">
-          <span data-field="age">—</span>
-          <span class="label" data-field="label">—</span>
-        </div>
-      </article>
+    <div class="rows">
 
-      <article class="card" data-card="promos">
-        <div class="card-head">
-          <span class="card-name">SNS 특판 (네이버+카카오)</span>
-          <span class="dot loading"></span>
+      <div class="row" data-row="rates">
+        <div class="row-dot-wrap"><span class="dot loading"></span></div>
+        <div class="row-body">
+          <div class="row-name">복리 계산기 · 금리 비교 페이지</div>
+          <div class="row-data">FSS 예적금 금리 일일 공시 <span class="count" data-field="items">—</span></div>
+          <div class="row-tech">GitHub Actions cron · 매일 09:10 KST · 금감원 공시 API</div>
         </div>
-        <div class="card-value" data-field="value">—</div>
-        <div class="card-meta">
-          <span data-field="age">—</span>
-          <span class="label" data-field="label">—</span>
+        <div class="row-right">
+          <div class="row-age" data-field="age">—</div>
+          <div class="row-label" data-field="label">—</div>
         </div>
-      </article>
+      </div>
 
-      <article class="card" data-card="cron">
-        <div class="card-head">
-          <span class="card-name">메인 cron</span>
-          <span class="dot loading"></span>
+      <div class="row" data-row="promos">
+        <div class="row-dot-wrap"><span class="dot loading"></span></div>
+        <div class="row-body">
+          <div class="row-name">금리 비교 페이지 · SNS 특판 탭</div>
+          <div class="row-data">SNS 적금 특판 (블로거 교차검증) <span class="count" data-field="items">—</span></div>
+          <div class="row-tech">GitHub Actions cron · 네이버 블로그 검색 + 카카오 Local API</div>
         </div>
-        <div class="card-value" data-field="value">—</div>
-        <div class="card-meta">
-          <span data-field="age">—</span>
-          <span class="label" data-field="label">—</span>
+        <div class="row-right">
+          <div class="row-age" data-field="age">—</div>
+          <div class="row-label" data-field="label">—</div>
         </div>
-      </article>
+      </div>
 
-      <article class="card" data-card="workers">
-        <div class="card-head">
-          <span class="card-name">Cloudflare Workers</span>
-          <span class="dot pending"></span>
+      <div class="row pending" data-row="exchange">
+        <div class="row-dot-wrap"><span class="dot pending"></span></div>
+        <div class="row-body">
+          <div class="row-name">환율 계산기 · 여행 비용 페이지</div>
+          <div class="row-data">일반 환율 (USD/JPY/EUR 등 base 변환)</div>
+          <div class="row-tech">Cloudflare Worker · sudanghelp-rates · ExchangeRate API 1시간 캐시</div>
         </div>
-        <div class="card-value">—</div>
-        <div class="card-meta">
-          <span>v2 예정</span>
-          <span class="label">PENDING</span>
+        <div class="row-right">
+          <div class="row-age">v2 예정</div>
+          <div class="row-label">PENDING</div>
         </div>
-      </article>
+      </div>
+
+      <div class="row pending" data-row="bank-exchange">
+        <div class="row-dot-wrap"><span class="dot pending"></span></div>
+        <div class="row-body">
+          <div class="row-name">환전 분석 페이지</div>
+          <div class="row-data">은행별 환율 + 스프레드 (현찰 매매 + 송금)</div>
+          <div class="row-tech">Cloudflare Worker · bank-exchange-rates → Supabase</div>
+        </div>
+        <div class="row-right">
+          <div class="row-age">v2 예정</div>
+          <div class="row-label">PENDING</div>
+        </div>
+      </div>
+
+      <div class="row pending" data-row="feedback">
+        <div class="row-dot-wrap"><span class="dot pending"></span></div>
+        <div class="row-body">
+          <div class="row-name">여행 페이지 전반 · 피드백 위젯</div>
+          <div class="row-data">리뷰 · 좋아요/싫어요 · 조회수</div>
+          <div class="row-tech">Cloudflare Worker · sudanghelpfeedback (KV)</div>
+        </div>
+        <div class="row-right">
+          <div class="row-age">v2 예정</div>
+          <div class="row-label">PENDING</div>
+        </div>
+      </div>
 
     </div>
   </section>
@@ -322,7 +366,7 @@ const VERDICT_COPY = {
   ok:       { text: 'ALL HEALTHY',     desc: '모든 신호 fresh, fallback 없음' },
   stale:    { text: 'STALE DETECTED',  desc: '일부 데이터가 24시간+ 오래됨' },
   fallback: { text: 'FALLBACK ACTIVE', desc: 'cron 실행됐지만 콘텐츠 미변동 — 상위 API 의심' },
-  down:     { text: 'SERVICE DOWN',    desc: '하나 이상의 신호 fetch 실패' },
+  down:     { text: 'SERVICE DOWN',    desc: '하나 이상의 신호 fetch 실패 또는 48시간+ 오래됨' },
   loading:  { text: '로딩 중…',         desc: '최신 status 가져오는 중' },
   unknown:  { text: 'NO DATA',         desc: 'status/latest.json 미생성 — 첫 poll 대기 중' },
 };
@@ -342,6 +386,11 @@ function formatAge(min) {
   return `${day}일 전`;
 }
 
+function formatItems(n) {
+  if (n == null) return '';
+  return `(${n.toLocaleString('ko-KR')} items)`;
+}
+
 function setBanner(level) {
   const banner = document.getElementById('banner');
   const dot = document.getElementById('banner-dot');
@@ -353,19 +402,19 @@ function setBanner(level) {
   desc.textContent = (VERDICT_COPY[level] || VERDICT_COPY.unknown).desc;
 }
 
-function setCard(name, src) {
-  const card = document.querySelector(`[data-card="${name}"]`);
-  if (!card) return;
-  const dot = card.querySelector('.dot');
-  const valueEl = card.querySelector('[data-field="value"]');
-  const ageEl = card.querySelector('[data-field="age"]');
-  const labelEl = card.querySelector('[data-field="label"]');
+function setRow(name, src) {
+  const row = document.querySelector(`[data-row="${name}"]`);
+  if (!row) return;
+  const dot = row.querySelector('.dot');
+  const itemsEl = row.querySelector('[data-field="items"]');
+  const ageEl = row.querySelector('[data-field="age"]');
+  const labelEl = row.querySelector('[data-field="label"]');
 
   if (!src) {
     dot.className = 'dot unknown';
-    if (valueEl) valueEl.textContent = '—';
+    if (itemsEl) itemsEl.textContent = '';
     if (ageEl) ageEl.textContent = '데이터 없음';
-    if (labelEl) { labelEl.textContent = '—'; labelEl.className = 'label'; }
+    if (labelEl) { labelEl.textContent = '—'; labelEl.className = 'row-label'; }
     return;
   }
 
@@ -373,55 +422,12 @@ function setCard(name, src) {
   if (src.fallback && level === 'ok') level = 'fallback';
 
   dot.className = `dot ${level}`;
-
-  const items = src.items != null ? `${src.items}` : '—';
-  const unit = src.items != null ? '<span class="unit">items</span>' : '';
-  if (valueEl) valueEl.innerHTML = items + unit;
-
-  if (ageEl) {
-    const ageStr = formatAge(src.age_min);
-    const fallbackBadge = src.fallback ? ' <span class="badge fallback">fallback</span>' : '';
-    ageEl.innerHTML = ageStr + fallbackBadge;
-  }
-
+  if (itemsEl) itemsEl.textContent = formatItems(src.items);
+  if (ageEl) ageEl.textContent = formatAge(src.age_min);
   if (labelEl) {
     labelEl.textContent = LABEL[level] || level.toUpperCase();
-    labelEl.className = `label ${level}`;
+    labelEl.className = `row-label ${level}`;
   }
-}
-
-function setCronCard(snapshot) {
-  const card = document.querySelector('[data-card="cron"]');
-  const dot = card.querySelector('.dot');
-  const valueEl = card.querySelector('[data-field="value"]');
-  const ageEl = card.querySelector('[data-field="age"]');
-  const labelEl = card.querySelector('[data-field="label"]');
-
-  const sources = Object.values(snapshot.sources || {});
-  if (!sources.length) {
-    dot.className = 'dot unknown';
-    valueEl.textContent = '—';
-    ageEl.textContent = '—';
-    labelEl.textContent = '—';
-    return;
-  }
-
-  const ages = sources.map(s => s.age_min).filter(a => a != null);
-  const minAge = ages.length ? Math.min(...ages) : null;
-  const anyDown = sources.some(s => s.status === 'down');
-  const anyStale = sources.some(s => s.status === 'stale');
-  const anyFallback = sources.some(s => s.fallback);
-
-  let level = 'ok';
-  if (anyDown) level = 'down';
-  else if (anyStale) level = 'stale';
-  else if (anyFallback) level = 'fallback';
-
-  dot.className = `dot ${level}`;
-  valueEl.textContent = level === 'ok' ? 'OK' : level.toUpperCase();
-  ageEl.textContent = `last fresh ${formatAge(minAge)}`;
-  labelEl.textContent = LABEL[level];
-  labelEl.className = `label ${level}`;
 }
 
 async function refresh() {
@@ -431,14 +437,12 @@ async function refresh() {
     const snapshot = await r.json();
 
     setBanner(snapshot.overall || 'unknown');
-    setCard('rates', snapshot.sources?.rates);
-    setCard('promos', snapshot.sources?.promos);
-    setCronCard(snapshot);
+    setRow('rates', snapshot.sources?.rates);
+    setRow('promos', snapshot.sources?.promos);
   } catch (e) {
     setBanner('unknown');
-    setCard('rates', null);
-    setCard('promos', null);
-    setCronCard({ sources: {} });
+    setRow('rates', null);
+    setRow('promos', null);
     console.warn('status fetch failed:', e.message);
   }
 }
