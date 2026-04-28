@@ -1,0 +1,39 @@
+name: Poll live site status
+
+# 매시간 sudanghelp.co.kr 의 rates.json/featured_promos.json 을 찔러
+# updatedAt + content hash 만 status/latest.json 에 기록.
+# fallback (콘텐츠 미변동) 여부 자동 감지.
+
+on:
+  schedule:
+    - cron: '0 * * * *'   # 매시 정각 UTC
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: poll-status
+  cancel-in-progress: true
+
+jobs:
+  poll:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Poll live site and update status
+        run: python3 .github/scripts/poll.py
+
+      - name: Commit if changed
+        run: |
+          git config user.name  "sudanghelp-monitor-bot"
+          git config user.email "bot@users.noreply.github.com"
+          git add status/latest.json status/history/
+          if git diff --staged --quiet; then
+            echo "No status change — skip commit"
+          else
+            git commit -m "chore(status): poll $(date -u +%Y-%m-%dT%H:%MZ)"
+            git push
+          fi

@@ -3,12 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>sudanghelp-data · 실시간 데이터 헬스</title>
-<meta name="description" content="sudanghelp.co.kr 의 FSS 금리·특판·환율 데이터 신선도와 fallback 상태를 실시간으로 추적하는 운영 대시보드.">
+<title>sudanghelp-data · 실시간 헬스 모니터</title>
+<meta name="description" content="sudanghelp.co.kr 의 cron + API 신호가 정상 동작 중인지, fallback 발생 여부를 매시간 추적하는 모니터.">
 <meta name="robots" content="noindex">
 
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
-<link rel="preconnect" href="https://api.github.com">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
 <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
 <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css">
@@ -43,7 +42,7 @@ a { color: var(--accent); text-decoration: none; }
 a:hover { text-decoration: underline; }
 
 .container {
-  max-width: 1080px;
+  max-width: 880px;
   margin: 0 auto;
   padding: 48px 24px 80px;
 }
@@ -53,7 +52,7 @@ a:hover { text-decoration: underline; }
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
-  margin-bottom: 40px;
+  margin-bottom: 36px;
   padding-bottom: 24px;
   border-bottom: 1px solid var(--border);
 }
@@ -76,24 +75,52 @@ a:hover { text-decoration: underline; }
 }
 .hd .meta .now { color: var(--text-dim); }
 
-/* Section */
-.section { margin-bottom: 48px; }
+/* Overall banner */
+.banner {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 18px 22px;
+  margin-bottom: 28px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+.banner .verdict {
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.banner .desc {
+  font-size: 13px;
+  color: var(--text-dim);
+  margin-top: 2px;
+}
+.banner.ok    { border-left: 3px solid var(--accent); }
+.banner.stale { border-left: 3px solid var(--warn); }
+.banner.fallback { border-left: 3px solid var(--warn); }
+.banner.down  { border-left: 3px solid var(--down); }
+.banner.ok    .verdict { color: var(--accent); }
+.banner.stale .verdict { color: var(--warn); }
+.banner.fallback .verdict { color: var(--warn); }
+.banner.down  .verdict { color: var(--down); }
+
+.section { margin-bottom: 36px; }
 .section-title {
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--text-muted);
-  margin-bottom: 16px;
+  margin-bottom: 14px;
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
-/* Status grid */
 .status-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 12px;
 }
 .card {
@@ -121,9 +148,9 @@ a:hover { text-decoration: underline; }
   flex-shrink: 0;
 }
 .dot.ok { background: var(--accent); box-shadow: 0 0 8px rgba(16, 185, 129, 0.4); }
-.dot.warn { background: var(--warn); box-shadow: 0 0 8px rgba(245, 158, 11, 0.4); }
+.dot.stale, .dot.fallback { background: var(--warn); box-shadow: 0 0 8px rgba(245, 158, 11, 0.4); }
 .dot.down { background: var(--down); box-shadow: 0 0 8px rgba(239, 68, 68, 0.4); }
-.dot.loading { background: var(--text-muted); animation: pulse 1.4s ease-in-out infinite; }
+.dot.loading, .dot.unknown, .dot.pending { background: var(--text-muted); animation: pulse 1.4s ease-in-out infinite; }
 
 @keyframes pulse {
   0%, 100% { opacity: 0.3; }
@@ -132,126 +159,49 @@ a:hover { text-decoration: underline; }
 
 .card-value {
   font-family: var(--mono);
-  font-size: 24px;
+  font-size: 20px;
   font-weight: 500;
   letter-spacing: -0.02em;
-  margin-bottom: 4px;
+  margin-bottom: 6px;
 }
 .card-value .unit {
-  font-size: 13px;
+  font-size: 12px;
   color: var(--text-dim);
   font-weight: 400;
   margin-left: 4px;
 }
-.card-foot {
+.card-meta {
   font-family: var(--mono);
   font-size: 11px;
   color: var(--text-muted);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: 8px;
+  flex-wrap: wrap;
+  gap: 6px;
 }
-.card-foot .status-label {
+.card-meta .label {
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
-.card-foot .status-label.ok { color: var(--accent); }
-.card-foot .status-label.warn { color: var(--warn); }
-.card-foot .status-label.down { color: var(--down); }
-
-/* Data tables */
-.preview-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
-}
-@media (max-width: 720px) {
-  .preview-grid { grid-template-columns: 1fr; }
-}
-.preview {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  overflow: hidden;
-}
-.preview-head {
-  padding: 14px 20px;
-  border-bottom: 1px solid var(--border);
+.card-meta .label.ok { color: var(--accent); }
+.card-meta .label.stale, .card-meta .label.fallback { color: var(--warn); }
+.card-meta .label.down { color: var(--down); }
+.card-meta .badge {
+  display: inline-block;
+  padding: 2px 6px;
+  border-radius: 3px;
   background: var(--surface-2);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-.preview-head h3 {
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: -0.01em;
-}
-.preview-head .count {
-  font-family: var(--mono);
-  font-size: 11px;
-  color: var(--text-muted);
-}
-.preview-body {
-  padding: 8px 0;
-  max-height: 420px;
-  overflow-y: auto;
-}
-.preview-body::-webkit-scrollbar { width: 6px; }
-.preview-body::-webkit-scrollbar-track { background: transparent; }
-.preview-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
-
-.row {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 12px;
-  padding: 10px 20px;
-  border-bottom: 1px solid var(--surface-2);
-  align-items: center;
-}
-.row:last-child { border-bottom: none; }
-.row-name {
-  font-size: 13px;
-  color: var(--text);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.row-bank {
-  font-size: 11px;
-  color: var(--text-muted);
-  margin-top: 2px;
-}
-.row-rate {
-  font-family: var(--mono);
-  font-size: 14px;
-  color: var(--accent);
-  font-weight: 500;
-  text-align: right;
-  white-space: nowrap;
-}
-.row-tier {
+  border: 1px solid var(--border);
   font-size: 10px;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: var(--text-muted);
-  font-family: var(--mono);
 }
-.row-tier.hot { color: var(--down); }
-.row-tier.trending { color: var(--warn); }
-.row-tier.verified { color: var(--accent); }
-
-.empty {
-  padding: 40px 20px;
-  text-align: center;
-  color: var(--text-muted);
-  font-size: 13px;
-}
+.card-meta .badge.fallback { color: var(--warn); border-color: var(--warn); }
 
 /* Footer */
 .ft {
-  margin-top: 64px;
+  margin-top: 48px;
   padding-top: 24px;
   border-top: 1px solid var(--border);
   display: flex;
@@ -266,15 +216,11 @@ a:hover { text-decoration: underline; }
 .ft .links a { color: var(--text-dim); }
 .ft .links a:hover { color: var(--accent); }
 
-/* Responsive */
 @media (max-width: 600px) {
   .container { padding: 32px 16px 60px; }
   .hd { flex-direction: column; align-items: flex-start; gap: 12px; }
   .hd .meta { text-align: left; }
-  .card-value { font-size: 20px; }
 }
-
-[hidden] { display: none !important; }
 </style>
 </head>
 <body>
@@ -284,19 +230,27 @@ a:hover { text-decoration: underline; }
   <header class="hd">
     <div>
       <h1>sudanghelp<span class="accent">-data</span></h1>
-      <div class="sub">실시간 데이터 헬스 · operational ledger</div>
+      <div class="sub">실시간 헬스 모니터 · cron + API fallback 추적</div>
     </div>
     <div class="meta">
       <div class="now" id="now-ts">—</div>
-      <div>auto-refresh 60s</div>
+      <div>poll hourly · auto-refresh 60s</div>
     </div>
   </header>
+
+  <div class="banner loading" id="banner">
+    <span class="dot loading" id="banner-dot"></span>
+    <div>
+      <div class="verdict" id="banner-verdict">로딩 중…</div>
+      <div class="desc" id="banner-desc">최신 status 가져오는 중</div>
+    </div>
+  </div>
 
   <section class="section">
     <div class="section-title">
       <i class="ph ph-pulse"></i> 데이터 신선도
     </div>
-    <div class="status-grid" id="status-grid">
+    <div class="status-grid">
 
       <article class="card" data-card="rates">
         <div class="card-head">
@@ -304,21 +258,21 @@ a:hover { text-decoration: underline; }
           <span class="dot loading"></span>
         </div>
         <div class="card-value" data-field="value">—</div>
-        <div class="card-foot">
-          <span data-field="age">불러오는 중…</span>
-          <span class="status-label" data-field="status">—</span>
+        <div class="card-meta">
+          <span data-field="age">—</span>
+          <span class="label" data-field="label">—</span>
         </div>
       </article>
 
       <article class="card" data-card="promos">
         <div class="card-head">
-          <span class="card-name">SNS 특판</span>
+          <span class="card-name">SNS 특판 (네이버+카카오)</span>
           <span class="dot loading"></span>
         </div>
         <div class="card-value" data-field="value">—</div>
-        <div class="card-foot">
-          <span data-field="age">불러오는 중…</span>
-          <span class="status-label" data-field="status">—</span>
+        <div class="card-meta">
+          <span data-field="age">—</span>
+          <span class="label" data-field="label">—</span>
         </div>
       </article>
 
@@ -328,77 +282,33 @@ a:hover { text-decoration: underline; }
           <span class="dot loading"></span>
         </div>
         <div class="card-value" data-field="value">—</div>
-        <div class="card-foot">
-          <span data-field="age">불러오는 중…</span>
-          <span class="status-label" data-field="status">—</span>
+        <div class="card-meta">
+          <span data-field="age">—</span>
+          <span class="label" data-field="label">—</span>
         </div>
       </article>
 
       <article class="card" data-card="workers">
         <div class="card-head">
           <span class="card-name">Cloudflare Workers</span>
-          <span class="dot loading"></span>
+          <span class="dot pending"></span>
         </div>
-        <div class="card-value" data-field="value">—</div>
-        <div class="card-foot">
-          <span data-field="age">v2 예정</span>
-          <span class="status-label">PENDING</span>
+        <div class="card-value">—</div>
+        <div class="card-meta">
+          <span>v2 예정</span>
+          <span class="label">PENDING</span>
         </div>
       </article>
 
     </div>
   </section>
 
-  <section class="section">
-    <div class="section-title">
-      <i class="ph ph-list-bullets"></i> 최신 데이터 미리보기
-    </div>
-    <div class="preview-grid">
-
-      <div class="preview">
-        <div class="preview-head">
-          <h3>예금 금리 TOP 5</h3>
-          <span class="count" id="deposit-count">—</span>
-        </div>
-        <div class="preview-body" id="deposit-rows">
-          <div class="empty">불러오는 중…</div>
-        </div>
-      </div>
-
-      <div class="preview">
-        <div class="preview-head">
-          <h3>적금 금리 TOP 5</h3>
-          <span class="count" id="saving-count">—</span>
-        </div>
-        <div class="preview-body" id="saving-rows">
-          <div class="empty">불러오는 중…</div>
-        </div>
-      </div>
-
-    </div>
-  </section>
-
-  <section class="section">
-    <div class="section-title">
-      <i class="ph ph-fire"></i> 검증된 SNS 특판
-    </div>
-    <div class="preview" style="grid-column: 1 / -1;">
-      <div class="preview-head">
-        <h3>오늘의 특판</h3>
-        <span class="count" id="promos-count">—</span>
-      </div>
-      <div class="preview-body" id="promos-rows">
-        <div class="empty">불러오는 중…</div>
-      </div>
-    </div>
-  </section>
-
   <footer class="ft">
-    <div>v0 · operational ledger for sudanghelp.co.kr</div>
+    <div>v0 · operational monitor for sudanghelp.co.kr</div>
     <div class="links">
       <a href="https://sudanghelp.co.kr">Main site</a>
-      <a href="https://sudanghelp.co.kr/compoundcalc/rates/">Rates page</a>
       <a href="https://github.com/seansble/sudanghelp-data">Repo</a>
+      <a href="https://github.com/seansble/sudanghelp-data/blob/main/status/latest.json">status.json</a>
       <a href="https://github.com/seansble/sudanghelp-data/blob/main/LICENSE">CC-BY-4.0</a>
     </div>
   </footer>
@@ -406,24 +316,24 @@ a:hover { text-decoration: underline; }
 </div>
 
 <script>
-const SOURCES = {
-  rates:  'https://sudanghelp.co.kr/compoundcalc/rates/rates.json',
-  promos: 'https://sudanghelp.co.kr/compoundcalc/rates/featured_promos.json'
+const STATUS_URL = 'status/latest.json';
+
+const VERDICT_COPY = {
+  ok:       { text: 'ALL HEALTHY',     desc: '모든 신호 fresh, fallback 없음' },
+  stale:    { text: 'STALE DETECTED',  desc: '일부 데이터가 24시간+ 오래됨' },
+  fallback: { text: 'FALLBACK ACTIVE', desc: 'cron 실행됐지만 콘텐츠 미변동 — 상위 API 의심' },
+  down:     { text: 'SERVICE DOWN',    desc: '하나 이상의 신호 fetch 실패' },
+  loading:  { text: '로딩 중…',         desc: '최신 status 가져오는 중' },
+  unknown:  { text: 'NO DATA',         desc: 'status/latest.json 미생성 — 첫 poll 대기 중' },
 };
 
-const state = { rates: null, promos: null };
+const LABEL = {
+  ok: 'HEALTHY', stale: 'STALE', down: 'DOWN',
+  fallback: 'FALLBACK', unknown: '—', pending: 'PENDING'
+};
 
-const HEALTHY_HOURS = 24;
-const STALE_HOURS = 48;
-
-function classifyAge(hours) {
-  if (hours < HEALTHY_HOURS) return 'ok';
-  if (hours < STALE_HOURS) return 'warn';
-  return 'down';
-}
-
-function formatAge(ms) {
-  const min = Math.floor(ms / 60000);
+function formatAge(min) {
+  if (min == null) return '—';
   if (min < 1) return '방금 전';
   if (min < 60) return `${min}분 전`;
   const hr = Math.floor(min / 60);
@@ -432,152 +342,105 @@ function formatAge(ms) {
   return `${day}일 전`;
 }
 
-function statusLabel(level) {
-  return ({ ok: 'HEALTHY', warn: 'STALE', down: 'DOWN', loading: '—' })[level] || '—';
+function setBanner(level) {
+  const banner = document.getElementById('banner');
+  const dot = document.getElementById('banner-dot');
+  const verdict = document.getElementById('banner-verdict');
+  const desc = document.getElementById('banner-desc');
+  banner.className = `banner ${level}`;
+  dot.className = `dot ${level === 'loading' ? 'loading' : level}`;
+  verdict.textContent = (VERDICT_COPY[level] || VERDICT_COPY.unknown).text;
+  desc.textContent = (VERDICT_COPY[level] || VERDICT_COPY.unknown).desc;
 }
 
-function setCard(name, { value, unit, ageMs, status, statusOverride }) {
+function setCard(name, src) {
   const card = document.querySelector(`[data-card="${name}"]`);
   if (!card) return;
   const dot = card.querySelector('.dot');
-  const level = statusOverride || (ageMs == null ? 'loading' : classifyAge(ageMs / 3600000));
-
-  dot.className = `dot ${level === 'loading' ? 'loading' : level}`;
-
   const valueEl = card.querySelector('[data-field="value"]');
-  if (value != null) {
-    valueEl.innerHTML = unit
-      ? `${value}<span class="unit">${unit}</span>`
-      : value;
-  }
-
   const ageEl = card.querySelector('[data-field="age"]');
-  if (ageEl) ageEl.textContent = ageMs != null ? formatAge(ageMs) : (status || '—');
+  const labelEl = card.querySelector('[data-field="label"]');
 
-  const statusEl = card.querySelector('[data-field="status"]');
-  if (statusEl) {
-    statusEl.textContent = statusLabel(level);
-    statusEl.className = `status-label ${level === 'loading' ? '' : level}`;
-  }
-}
-
-async function fetchJSON(url) {
-  const r = await fetch(url, { cache: 'no-cache' });
-  if (!r.ok) throw new Error(`${r.status}`);
-  return r.json();
-}
-
-async function loadRates() {
-  try {
-    const data = await fetchJSON(SOURCES.rates);
-    state.rates = data;
-
-    const updated = data.updatedAtIso ? new Date(data.updatedAtIso) : null;
-    const ageMs = updated ? Date.now() - updated.getTime() : null;
-
-    const deposits = data.deposits || [];
-    const savings = data.savings || [];
-    const total = deposits.length + savings.length;
-
-    setCard('rates', { value: total, unit: 'items', ageMs });
-
-    const topDeposits = [...deposits].sort((a, b) => (b.maxRate || 0) - (a.maxRate || 0)).slice(0, 5);
-    const topSavings = [...savings].sort((a, b) => (b.maxRate || 0) - (a.maxRate || 0)).slice(0, 5);
-
-    document.getElementById('deposit-count').textContent = `total ${deposits.length}`;
-    document.getElementById('saving-count').textContent = `total ${savings.length}`;
-    renderRateRows('deposit-rows', topDeposits);
-    renderRateRows('saving-rows', topSavings);
-  } catch (e) {
-    state.rates = null;
-    setCard('rates', { value: 'ERR', statusOverride: 'down' });
-    document.getElementById('deposit-rows').innerHTML = `<div class="empty">로드 실패 (${e.message})</div>`;
-    document.getElementById('saving-rows').innerHTML = `<div class="empty">로드 실패 (${e.message})</div>`;
-  }
-}
-
-function renderRateRows(id, rows) {
-  const el = document.getElementById(id);
-  if (!rows.length) { el.innerHTML = '<div class="empty">데이터 없음</div>'; return; }
-  el.innerHTML = rows.map(r => {
-    const name = r.product || '—';
-    const bank = r.bank || '';
-    const rate = r.maxRate ?? r.baseRate;
-    const rateStr = rate != null ? `${Number(rate).toFixed(2)}%` : '—';
-    return `<div class="row">
-      <div>
-        <div class="row-name">${escapeHtml(name)}</div>
-        ${bank ? `<div class="row-bank">${escapeHtml(bank)}</div>` : ''}
-      </div>
-      <div class="row-rate">${rateStr}</div>
-    </div>`;
-  }).join('');
-}
-
-function parseUpdatedAt(s) {
-  if (!s) return null;
-  const m = s.match(/^(\d{4})-(\d{2})-(\d{2})\s+(\d{2}):(\d{2})/);
-  if (!m) return new Date(s);
-  return new Date(`${m[1]}-${m[2]}-${m[3]}T${m[4]}:${m[5]}:00+09:00`);
-}
-
-async function loadPromos() {
-  try {
-    const data = await fetchJSON(SOURCES.promos);
-    state.promos = data;
-
-    const updated = parseUpdatedAt(data.updatedAt);
-    const ageMs = updated ? Date.now() - updated.getTime() : null;
-    const items = data.items || [];
-
-    setCard('promos', { value: items.length, unit: 'items', ageMs });
-    document.getElementById('promos-count').textContent = `total ${items.length}`;
-    renderPromoRows('promos-rows', items.slice(0, 10));
-  } catch (e) {
-    state.promos = null;
-    setCard('promos', { value: 'ERR', statusOverride: 'down' });
-    document.getElementById('promos-rows').innerHTML = `<div class="empty">로드 실패 (${e.message})</div>`;
-  }
-}
-
-function renderPromoRows(id, items) {
-  const el = document.getElementById(id);
-  if (!items.length) { el.innerHTML = '<div class="empty">활성 특판 없음</div>'; return; }
-  el.innerHTML = items.map(p => {
-    const tier = (p.trustTier || 'verified').toLowerCase();
-    const name = p.product || '—';
-    const bank = p.bank || '';
-    const rate = p.maxRate ?? p.baseRate;
-    const rateStr = rate != null ? `${Number(rate).toFixed(2)}%` : '—';
-    return `<div class="row">
-      <div>
-        <div class="row-name">${escapeHtml(name)} <span class="row-tier ${tier}">${tier}</span></div>
-        ${bank ? `<div class="row-bank">${escapeHtml(bank)}</div>` : ''}
-      </div>
-      <div class="row-rate">${rateStr}</div>
-    </div>`;
-  }).join('');
-}
-
-function deriveCron() {
-  const r = state.rates, p = state.promos;
-  if (!r && !p) {
-    setCard('cron', { value: 'ERR', statusOverride: 'down' });
+  if (!src) {
+    dot.className = 'dot unknown';
+    if (valueEl) valueEl.textContent = '—';
+    if (ageEl) ageEl.textContent = '데이터 없음';
+    if (labelEl) { labelEl.textContent = '—'; labelEl.className = 'label'; }
     return;
   }
-  const rUpd = r?.updatedAtIso ? new Date(r.updatedAtIso) : null;
-  const pUpd = parseUpdatedAt(p?.updatedAt);
-  const latest = [rUpd, pUpd].filter(Boolean).sort((a, b) => b - a)[0];
-  if (!latest) { setCard('cron', { value: 'N/A', statusOverride: 'warn' }); return; }
-  const ageMs = Date.now() - latest.getTime();
-  const level = classifyAge(ageMs / 3600000);
-  setCard('cron', { value: 'OK', unit: 'last run', ageMs, statusOverride: level });
+
+  let level = src.status || 'unknown';
+  if (src.fallback && level === 'ok') level = 'fallback';
+
+  dot.className = `dot ${level}`;
+
+  const items = src.items != null ? `${src.items}` : '—';
+  const unit = src.items != null ? '<span class="unit">items</span>' : '';
+  if (valueEl) valueEl.innerHTML = items + unit;
+
+  if (ageEl) {
+    const ageStr = formatAge(src.age_min);
+    const fallbackBadge = src.fallback ? ' <span class="badge fallback">fallback</span>' : '';
+    ageEl.innerHTML = ageStr + fallbackBadge;
+  }
+
+  if (labelEl) {
+    labelEl.textContent = LABEL[level] || level.toUpperCase();
+    labelEl.className = `label ${level}`;
+  }
 }
 
-function escapeHtml(s) {
-  return String(s).replace(/[&<>"']/g, c => ({
-    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
-  }[c]));
+function setCronCard(snapshot) {
+  const card = document.querySelector('[data-card="cron"]');
+  const dot = card.querySelector('.dot');
+  const valueEl = card.querySelector('[data-field="value"]');
+  const ageEl = card.querySelector('[data-field="age"]');
+  const labelEl = card.querySelector('[data-field="label"]');
+
+  const sources = Object.values(snapshot.sources || {});
+  if (!sources.length) {
+    dot.className = 'dot unknown';
+    valueEl.textContent = '—';
+    ageEl.textContent = '—';
+    labelEl.textContent = '—';
+    return;
+  }
+
+  const ages = sources.map(s => s.age_min).filter(a => a != null);
+  const minAge = ages.length ? Math.min(...ages) : null;
+  const anyDown = sources.some(s => s.status === 'down');
+  const anyStale = sources.some(s => s.status === 'stale');
+  const anyFallback = sources.some(s => s.fallback);
+
+  let level = 'ok';
+  if (anyDown) level = 'down';
+  else if (anyStale) level = 'stale';
+  else if (anyFallback) level = 'fallback';
+
+  dot.className = `dot ${level}`;
+  valueEl.textContent = level === 'ok' ? 'OK' : level.toUpperCase();
+  ageEl.textContent = `last fresh ${formatAge(minAge)}`;
+  labelEl.textContent = LABEL[level];
+  labelEl.className = `label ${level}`;
+}
+
+async function refresh() {
+  try {
+    const r = await fetch(STATUS_URL + '?_=' + Date.now(), { cache: 'no-store' });
+    if (!r.ok) throw new Error(r.status);
+    const snapshot = await r.json();
+
+    setBanner(snapshot.overall || 'unknown');
+    setCard('rates', snapshot.sources?.rates);
+    setCard('promos', snapshot.sources?.promos);
+    setCronCard(snapshot);
+  } catch (e) {
+    setBanner('unknown');
+    setCard('rates', null);
+    setCard('promos', null);
+    setCronCard({ sources: {} });
+    console.warn('status fetch failed:', e.message);
+  }
 }
 
 function updateNow() {
@@ -587,15 +450,10 @@ function updateNow() {
     `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())} KST`;
 }
 
-async function refreshAll() {
-  await Promise.all([loadRates(), loadPromos()]);
-  deriveCron();
-}
-
 updateNow();
 setInterval(updateNow, 1000);
-refreshAll();
-setInterval(refreshAll, 60000);
+refresh();
+setInterval(refresh, 60000);
 </script>
 
 </body>
