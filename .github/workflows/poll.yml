@@ -24,6 +24,8 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Poll live site and update status
+        env:
+          MAIN_REPO_PAT: ${{ secrets.MAIN_REPO_PAT }}
         run: python3 .github/scripts/poll.py
 
       - name: Commit if changed

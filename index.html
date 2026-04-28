@@ -184,6 +184,31 @@ a:hover { text-decoration: underline; }
   color: var(--text-muted);
   letter-spacing: 0.01em;
 }
+.row-name a {
+  color: var(--text);
+  text-decoration: none;
+  border-bottom: 1px dotted var(--text-muted);
+}
+.row-name a:hover {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+.row-signals {
+  margin-top: 8px;
+  font-size: 11px;
+  font-family: var(--mono);
+  color: var(--text-muted);
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.signal { white-space: nowrap; }
+.signal.ok { color: var(--accent); }
+.signal.stale, .signal.fallback { color: var(--warn); }
+.signal.down { color: var(--down); }
+.signal.unauthorized { color: var(--text-muted); font-style: italic; }
+.signal-sep { color: var(--text-muted); }
 
 .row-right {
   text-align: right;
@@ -282,9 +307,14 @@ a:hover { text-decoration: underline; }
       <div class="row" data-row="rates">
         <div class="row-dot-wrap"><span class="dot loading"></span></div>
         <div class="row-body">
-          <div class="row-name">복리 계산기 · 금리 비교 페이지</div>
+          <div class="row-name"><a href="https://sudanghelp.co.kr/compoundcalc/rates/" target="_blank" rel="noopener">금리 비교 페이지</a></div>
           <div class="row-data">FSS 예적금 금리 일일 공시 <span class="count" data-field="items">—</span></div>
           <div class="row-tech">GitHub Actions cron · 매일 09:10 KST · 금감원 공시 API</div>
+          <div class="row-signals">
+            <span class="signal" data-field="cron-signal">cron —</span>
+            <span class="signal-sep">·</span>
+            <span class="signal" data-field="live-signal">live —</span>
+          </div>
         </div>
         <div class="row-right">
           <div class="row-age" data-field="age">—</div>
@@ -295,9 +325,14 @@ a:hover { text-decoration: underline; }
       <div class="row" data-row="promos">
         <div class="row-dot-wrap"><span class="dot loading"></span></div>
         <div class="row-body">
-          <div class="row-name">금리 비교 페이지 · SNS 특판 탭</div>
+          <div class="row-name"><a href="https://sudanghelp.co.kr/compoundcalc/rates/#sns-promos" target="_blank" rel="noopener">금리 비교 페이지 · SNS 특판 탭</a></div>
           <div class="row-data">SNS 적금 특판 (블로거 교차검증) <span class="count" data-field="items">—</span></div>
           <div class="row-tech">GitHub Actions cron · 네이버 블로그 검색 + 카카오 Local API</div>
+          <div class="row-signals">
+            <span class="signal" data-field="cron-signal">cron —</span>
+            <span class="signal-sep">·</span>
+            <span class="signal" data-field="live-signal">live —</span>
+          </div>
         </div>
         <div class="row-right">
           <div class="row-age" data-field="age">—</div>
@@ -308,7 +343,7 @@ a:hover { text-decoration: underline; }
       <div class="row pending" data-row="exchange">
         <div class="row-dot-wrap"><span class="dot pending"></span></div>
         <div class="row-body">
-          <div class="row-name">환율 계산기 · 여행 비용 페이지</div>
+          <div class="row-name"><a href="https://sudanghelp.co.kr/travel/exchange-calculator/" target="_blank" rel="noopener">환율 계산기 · 여행 비용 페이지</a></div>
           <div class="row-data">일반 환율 (USD/JPY/EUR 등 base 변환)</div>
           <div class="row-tech">Cloudflare Worker · sudanghelp-rates · ExchangeRate API 1시간 캐시</div>
         </div>
@@ -321,7 +356,7 @@ a:hover { text-decoration: underline; }
       <div class="row pending" data-row="bank-exchange">
         <div class="row-dot-wrap"><span class="dot pending"></span></div>
         <div class="row-body">
-          <div class="row-name">환전 분석 페이지</div>
+          <div class="row-name"><a href="https://sudanghelp.co.kr/travel/exchange-analysis/" target="_blank" rel="noopener">환전 분석 페이지</a></div>
           <div class="row-data">은행별 환율 + 스프레드 (현찰 매매 + 송금)</div>
           <div class="row-tech">Cloudflare Worker · bank-exchange-rates → Supabase</div>
         </div>
@@ -334,7 +369,7 @@ a:hover { text-decoration: underline; }
       <div class="row pending" data-row="feedback">
         <div class="row-dot-wrap"><span class="dot pending"></span></div>
         <div class="row-body">
-          <div class="row-name">여행 페이지 전반 · 피드백 위젯</div>
+          <div class="row-name"><a href="https://sudanghelp.co.kr/travel/" target="_blank" rel="noopener">여행 페이지 전반 · 피드백 위젯</a></div>
           <div class="row-data">리뷰 · 좋아요/싫어요 · 조회수</div>
           <div class="row-tech">Cloudflare Worker · sudanghelpfeedback (KV)</div>
         </div>
@@ -363,17 +398,20 @@ a:hover { text-decoration: underline; }
 const STATUS_URL = 'status/latest.json';
 
 const VERDICT_COPY = {
-  ok:       { text: 'ALL HEALTHY',     desc: '모든 신호 fresh, fallback 없음' },
-  stale:    { text: 'STALE DETECTED',  desc: '일부 데이터가 24시간+ 오래됨' },
-  fallback: { text: 'FALLBACK ACTIVE', desc: 'cron 실행됐지만 콘텐츠 미변동 — 상위 API 의심' },
-  down:     { text: 'SERVICE DOWN',    desc: '하나 이상의 신호 fetch 실패 또는 48시간+ 오래됨' },
-  loading:  { text: '로딩 중…',         desc: '최신 status 가져오는 중' },
-  unknown:  { text: 'NO DATA',         desc: 'status/latest.json 미생성 — 첫 poll 대기 중' },
+  ok:             { text: 'ALL HEALTHY',     desc: 'cron 정상 + 라이브 fresh + fallback 없음' },
+  stale:          { text: 'CRON SLOW',       desc: 'cron 실행됐지만 25시간+ 지났음' },
+  fallback:       { text: 'FALLBACK ACTIVE', desc: 'cron 실행됐지만 콘텐츠 미변동 — 상위 API 의심' },
+  deploy_pending: { text: 'DEPLOY PENDING',  desc: 'cron 정상, 라이브 사이트 배포만 안 됨 (수동 dist 드래그 필요)' },
+  cron_down:      { text: 'CRON DOWN',       desc: 'GitHub Actions cron 자체가 멈춤 — 진짜 문제' },
+  down:           { text: 'SERVICE DOWN',    desc: '하나 이상의 신호 fetch 실패' },
+  loading:        { text: '로딩 중…',         desc: '최신 status 가져오는 중' },
+  unknown:        { text: 'NO DATA',         desc: 'status/latest.json 미생성 — 첫 poll 대기 중' },
 };
 
 const LABEL = {
   ok: 'HEALTHY', stale: 'STALE', down: 'DOWN',
-  fallback: 'FALLBACK', unknown: '—', pending: 'PENDING'
+  fallback: 'FALLBACK', unknown: '—', pending: 'PENDING',
+  deploy_pending: 'DEPLOY', cron_down: 'CRON DOWN', unauthorized: 'NO TOKEN',
 };
 
 function formatAge(min) {
@@ -391,43 +429,85 @@ function formatItems(n) {
   return `(${n.toLocaleString('ko-KR')} items)`;
 }
 
+function bannerClass(level) {
+  // overall verdict → banner color class
+  if (level === 'cron_down' || level === 'down') return 'down';
+  if (level === 'deploy_pending' || level === 'fallback' || level === 'stale') return 'stale';
+  if (level === 'ok') return 'ok';
+  return 'loading';
+}
+
 function setBanner(level) {
   const banner = document.getElementById('banner');
   const dot = document.getElementById('banner-dot');
   const verdict = document.getElementById('banner-verdict');
   const desc = document.getElementById('banner-desc');
-  banner.className = `banner ${level}`;
-  dot.className = `dot ${level === 'loading' ? 'loading' : level}`;
+  const cls = bannerClass(level);
+  banner.className = `banner ${cls}`;
+  dot.className = `dot ${cls === 'loading' ? 'loading' : cls}`;
   verdict.textContent = (VERDICT_COPY[level] || VERDICT_COPY.unknown).text;
   desc.textContent = (VERDICT_COPY[level] || VERDICT_COPY.unknown).desc;
 }
 
-function setRow(name, src) {
+function setSignal(el, label, level, ageMin) {
+  if (!el) return;
+  const ageStr = ageMin != null ? ` ${formatAge(ageMin)}` : '';
+  el.className = `signal ${level || ''}`;
+  if (level === 'unauthorized') {
+    el.textContent = `${label}: token 미설정`;
+  } else if (level === 'ok') {
+    el.textContent = `${label} OK${ageStr}`;
+  } else if (level === 'stale') {
+    el.textContent = `${label} STALE${ageStr}`;
+  } else if (level === 'down') {
+    el.textContent = `${label} DOWN${ageStr}`;
+  } else {
+    el.textContent = `${label} —`;
+  }
+}
+
+function setRow(name, srcLive, srcCron) {
   const row = document.querySelector(`[data-row="${name}"]`);
   if (!row) return;
   const dot = row.querySelector('.dot');
   const itemsEl = row.querySelector('[data-field="items"]');
   const ageEl = row.querySelector('[data-field="age"]');
   const labelEl = row.querySelector('[data-field="label"]');
+  const cronSig = row.querySelector('[data-field="cron-signal"]');
+  const liveSig = row.querySelector('[data-field="live-signal"]');
 
-  if (!src) {
-    dot.className = 'dot unknown';
-    if (itemsEl) itemsEl.textContent = '';
-    if (ageEl) ageEl.textContent = '데이터 없음';
-    if (labelEl) { labelEl.textContent = '—'; labelEl.className = 'row-label'; }
-    return;
-  }
+  // Compute combined level
+  // Priority: cron_down > deploy_pending > fallback > ok
+  const cronLevel = srcCron?.status || 'unknown';
+  let liveLevel = srcLive?.status || 'unknown';
+  if (srcLive?.fallback && liveLevel === 'ok') liveLevel = 'fallback';
 
-  let level = src.status || 'unknown';
-  if (src.fallback && level === 'ok') level = 'fallback';
+  let combined = 'unknown';
+  if (cronLevel === 'down') combined = 'down';
+  else if (cronLevel === 'stale') combined = 'stale';
+  else if (cronLevel === 'ok' && (liveLevel === 'down' || liveLevel === 'stale')) combined = 'deploy_pending';
+  else if (liveLevel === 'fallback') combined = 'fallback';
+  else if (cronLevel === 'unauthorized' && liveLevel === 'ok') combined = 'ok';
+  else if (cronLevel === 'unauthorized') combined = liveLevel === 'down' || liveLevel === 'stale' ? 'down' : 'unknown';
+  else if (liveLevel === 'ok') combined = 'ok';
+  else combined = liveLevel;
 
-  dot.className = `dot ${level}`;
-  if (itemsEl) itemsEl.textContent = formatItems(src.items);
-  if (ageEl) ageEl.textContent = formatAge(src.age_min);
+  // Dot mapping
+  const dotClass = combined === 'deploy_pending' ? 'stale'
+                 : combined === 'fallback' ? 'fallback'
+                 : combined;
+  dot.className = `dot ${dotClass}`;
+
+  // Items + age (use live data; fallback to cron commit time if no live)
+  if (itemsEl) itemsEl.textContent = formatItems(srcLive?.items);
+  if (ageEl) ageEl.textContent = formatAge(srcLive?.age_min);
   if (labelEl) {
-    labelEl.textContent = LABEL[level] || level.toUpperCase();
-    labelEl.className = `row-label ${level}`;
+    labelEl.textContent = LABEL[combined] || combined.toUpperCase();
+    labelEl.className = `row-label ${dotClass}`;
   }
+
+  setSignal(cronSig, 'cron', cronLevel, srcCron?.age_min);
+  setSignal(liveSig, 'live', liveLevel, srcLive?.age_min);
 }
 
 async function refresh() {
@@ -437,12 +517,12 @@ async function refresh() {
     const snapshot = await r.json();
 
     setBanner(snapshot.overall || 'unknown');
-    setRow('rates', snapshot.sources?.rates);
-    setRow('promos', snapshot.sources?.promos);
+    setRow('rates',  snapshot.sources?.rates,  snapshot.cron?.rates);
+    setRow('promos', snapshot.sources?.promos, snapshot.cron?.promos);
   } catch (e) {
     setBanner('unknown');
-    setRow('rates', null);
-    setRow('promos', null);
+    setRow('rates', null, null);
+    setRow('promos', null, null);
     console.warn('status fetch failed:', e.message);
   }
 }

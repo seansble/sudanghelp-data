@@ -36,12 +36,81 @@ ITEMS_COUNTER = {
     "promos": lambda d: len(d.get("items", [])),
 }
 
+# GitHub API — cron 자체 헬스체크 (라이브 사이트 배포와 무관)
+GH_REPO = "seansble/Sudanghelp"
+GH_FILE_PATHS = {
+    "rates":  "compoundcalc/rates/rates.json",
+    "promos": "compoundcalc/rates/featured_promos.json",
+}
+GH_TOKEN = os.environ.get("MAIN_REPO_PAT", "")
 
-def fetch(url: str) -> tuple[bytes, dict]:
-    req = urllib.request.Request(url, headers={"User-Agent": "sudanghelp-monitor-bot/1.0"})
+
+def fetch(url: str, headers: dict | None = None) -> tuple[bytes, dict]:
+    h = {"User-Agent": "sudanghelp-monitor-bot/1.0"}
+    if headers:
+        h.update(headers)
+    req = urllib.request.Request(url, headers=h)
     with urllib.request.urlopen(req, timeout=15) as r:
         body = r.read()
     return body, dict(r.headers)
+
+
+def check_cron_via_github(file_key: str, now: datetime) -> dict:
+    """GitHub API 로 메인 repo 의 해당 JSON 파일 마지막 커밋 시각 조회.
+
+    cron 자체가 정상 도는지 = 라이브 사이트 배포와 무관하게 판정 가능.
+    PAT 미설정 시 status='unauthorized' 반환 (대시보드에서 안내).
+    """
+    if not GH_TOKEN:
+        return {"status": "unauthorized", "note": "MAIN_REPO_PAT secret 미설정"}
+
+    path = GH_FILE_PATHS.get(file_key)
+    if not path:
+        return {"status": "unknown"}
+
+    url = f"https://api.github.com/repos/{GH_REPO}/commits?path={path}&per_page=1"
+    try:
+        body, _ = fetch(url, headers={
+            "Authorization": f"Bearer {GH_TOKEN}",
+            "Accept": "application/vnd.github+json",
+            "X-GitHub-Api-Version": "2022-11-28",
+        })
+        commits = json.loads(body)
+        if not commits:
+            return {"status": "down", "note": "no commits found"}
+
+        c = commits[0]
+        committed_at = c.get("commit", {}).get("committer", {}).get("date", "")
+        sha = c.get("sha", "")[:7]
+        message = c.get("commit", {}).get("message", "").split("\n")[0]
+
+        try:
+            dt = datetime.fromisoformat(committed_at.replace("Z", "+00:00"))
+            age = int((now - dt).total_seconds() // 60)
+        except ValueError:
+            age = None
+
+        # cron 은 매일 09:10 KST 실행. 25h 이상 = 진짜 죽음.
+        if age is None:
+            health = "unknown"
+        elif age < 60 * 25:
+            health = "ok"
+        elif age < 60 * 49:
+            health = "stale"
+        else:
+            health = "down"
+
+        return {
+            "status": health,
+            "last_commit_at": committed_at,
+            "age_min": age,
+            "sha": sha,
+            "message": message,
+        }
+    except urllib.error.HTTPError as e:
+        return {"status": "down", "http_status": e.code, "error": str(e)}
+    except Exception as e:
+        return {"status": "down", "error": f"{type(e).__name__}: {e}"}
 
 
 def parse_updated(s: str) -> str:
@@ -96,12 +165,18 @@ def main() -> int:
 
     snapshot: dict = {
         "checked_at": now.isoformat().replace("+00:00", "Z"),
-        "schema_version": 1,
-        "sources": {},
+        "schema_version": 2,
+        "cron": {},      # cron 자체 헬스 (GitHub API 직접)
+        "sources": {},   # 라이브 사이트 freshness (배포 의존)
     }
 
     any_error = False
 
+    # ---- cron 헬스체크 (GitHub API) ----
+    for key in SOURCES.keys():
+        snapshot["cron"][key] = check_cron_via_github(key, now)
+
+    # ---- 라이브 사이트 freshness ----
     for key, url in SOURCES.items():
         prev_src = (prev.get("sources") or {}).get(key) or {}
         prev_hash = prev_src.get("hash")
@@ -164,13 +239,27 @@ def main() -> int:
 
         snapshot["sources"][key] = result
 
-    # Overall verdict
-    statuses = [s.get("status") for s in snapshot["sources"].values()]
-    if any(s == "down" for s in statuses):
-        snapshot["overall"] = "down"
-    elif any(s == "stale" for s in statuses):
+    # Overall verdict — cron 우선 판정
+    cron_statuses = [c.get("status") for c in snapshot["cron"].values()]
+    src_statuses = [s.get("status") for s in snapshot["sources"].values()]
+
+    cron_down = any(s == "down" for s in cron_statuses)
+    cron_stale = any(s == "stale" for s in cron_statuses)
+    src_down = any(s == "down" for s in src_statuses)
+    src_stale = any(s == "stale" for s in src_statuses)
+    any_fallback = any(s.get("fallback") for s in snapshot["sources"].values())
+
+    if cron_down:
+        snapshot["overall"] = "cron_down"
+    elif src_down or src_stale:
+        # cron 정상인데 라이브만 stale → 배포 대기
+        if all(s in ("ok", "unauthorized", "unknown") for s in cron_statuses):
+            snapshot["overall"] = "deploy_pending"
+        else:
+            snapshot["overall"] = "down"
+    elif cron_stale:
         snapshot["overall"] = "stale"
-    elif any(s.get("fallback") for s in snapshot["sources"].values()):
+    elif any_fallback:
         snapshot["overall"] = "fallback"
     else:
         snapshot["overall"] = "ok"
