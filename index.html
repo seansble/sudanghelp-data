@@ -454,11 +454,12 @@ function combinedStatus(src) {
   // pending sources stay pending
   if (src.status === 'pending') return 'pending';
   const cron = src.cron?.status;
-  const live = src.freshness?.fallback ? 'fallback' : src.status;
+  // v4: fallback flag 은 informational. status (age 기반) 만으로 badge 결정.
+  // hash 가 직전 poll 과 같아도 임계값 안쪽이면 정상 (자연 변동).
+  const live = src.status;
   if (cron === 'down') return 'down';
   if (cron === 'stale') return 'stale';
   if (cron === 'ok' && (live === 'down' || live === 'stale')) return 'deploy_pending';
-  if (live === 'fallback') return 'fallback';
   if (live === 'ok') return 'ok';
   return live || 'unknown';
 }
@@ -519,7 +520,8 @@ function renderCard(srcKey, src) {
   let signalsHtml = '';
   if (!isPending) {
     const cron = src.cron;
-    const liveLevel = src.freshness?.fallback ? 'fallback' : src.status;
+    // v4: fallback flag 은 informational. live 시그널 색·배지는 src.status (age 기반) 만 사용.
+    const liveLevel = src.status;
     const liveAge = src.freshness?.age_min;
     const liveTs = src.freshness?.updated_at;       // ISO UTC
     if (cron) {
@@ -597,9 +599,10 @@ async function refresh() {
     setVerdict(snap.overall || 'unknown');
 
     const groups = snap.groups || {};
+    // 순서: 실시간 → 시간 단위 → 매일 단위 (freshest 우선, 운영 패턴 자연 매핑)
     const html =
-      renderSuperSection('정기 데이터', 'Cron · Worker', ['daily', 'hourly'], groups) +
-      renderSuperSection('실시간 사용자 활동', 'Live KV', ['realtime'], groups);
+      renderSuperSection('실시간 사용자 활동', 'Live KV',     ['realtime'],         groups) +
+      renderSuperSection('정기 데이터',         'Cron · Worker', ['hourly', 'daily'], groups);
 
     document.getElementById('root').innerHTML = html;
   } catch (e) {
