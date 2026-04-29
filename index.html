@@ -120,10 +120,38 @@ a { color: inherit; text-decoration: none; }
   letter-spacing: -0.005em;
 }
 
-/* ========== Groups grid ========== */
+/* ========== Super sections (정기 데이터 / 실시간) ========== */
+.super-section {
+  margin-bottom: 40px;
+}
+.super-section:last-child {
+  margin-bottom: 0;
+}
+.super-heading {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-3);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  margin: 0 0 20px 0;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
+.super-sub {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  text-transform: none;
+  color: var(--text-3);
+  margin-left: 8px;
+}
+
+/* ========== Groups grid (cadence 그룹 — auto-fit) ========== */
 .groups {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 28px;
 }
 
@@ -258,19 +286,18 @@ a { color: inherit; text-decoration: none; }
 
 .card-signals {
   display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: 4px;
   font-family: var(--mono);
   font-size: 10px;
   color: var(--text-3);
   letter-spacing: 0.01em;
 }
-.signal { white-space: nowrap; }
+.signal { white-space: normal; word-break: keep-all; }
 .signal.ok       { color: var(--accent); }
 .signal.stale,
 .signal.fallback { color: var(--warn); }
 .signal.down     { color: var(--down); }
-.signal-sep      { color: var(--text-3); }
 
 .card-pending-note {
   font-size: 11px;
@@ -300,11 +327,11 @@ a { color: inherit; text-decoration: none; }
 
 /* ========== Responsive ========== */
 @media (max-width: 1080px) {
-  .groups { grid-template-columns: 1fr 1fr; }
+  /* auto-fit handles 1024px naturally */
 }
 @media (max-width: 720px) {
   .container { padding: 36px 18px 64px; }
-  .groups { grid-template-columns: 1fr; gap: 24px; }
+  .groups { gap: 24px; }
   .hd { flex-direction: column; align-items: flex-start; gap: 12px; }
   .hd-meta { text-align: left; }
 }
@@ -330,12 +357,12 @@ a { color: inherit; text-decoration: none; }
     <span class="verdict-text" id="verdict-text">최신 status 가져오는 중</span>
   </div>
 
-  <div class="groups" id="groups">
-    <!-- 클라이언트 렌더 -->
+  <div id="root">
+    <!-- 클라이언트 렌더 — 2 super-section (정기 데이터 / 실시간) -->
   </div>
 
   <footer class="ft">
-    <div>v1 · schema 3 · groups by cadence</div>
+    <div>v2 · schema 4 · 2-section layout</div>
     <div class="ft-links">
       <a href="https://sudanghelp.co.kr">main site</a>
       <a href="https://github.com/seansble/sudanghelp-data">repo</a>
@@ -370,11 +397,23 @@ const STATUS_LABEL = {
 function fmtAge(min) {
   if (min == null) return '—';
   if (min < 1) return '방금';
-  if (min < 60) return `${min}m`;
+  if (min < 60) return `${min}m 전`;
   const hr = Math.floor(min / 60);
-  if (hr < 24) return `${hr}h`;
+  if (hr < 24) return `${hr}h 전`;
   const day = Math.floor(hr / 24);
-  return `${day}d`;
+  return `${day}d 전`;
+}
+
+// ISO UTC → "YYYY-MM-DD HH:MM" KST 표시
+function fmtKstTime(isoUtc) {
+  if (!isoUtc) return '';
+  const ms = Date.parse(isoUtc);
+  if (isNaN(ms)) return '';
+  // UTC → KST 수동 오프셋 (브라우저 timezone 무관하게 KST 강제)
+  const d = new Date(ms + 9 * 60 * 60 * 1000);
+  const pad = n => String(n).padStart(2, '0');
+  return `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())} `
+       + `${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}`;
 }
 
 function fmtItems(n) {
@@ -435,11 +474,13 @@ function statusToClass(s) {
   return s;
 }
 
-function renderSignal(label, level, age) {
+function renderSignal(label, level, age, updatedAt) {
   if (level === 'unauthorized') return `${label}: no token`;
   if (level == null) return `${label} —`;
-  const ageStr = age != null ? ` ${fmtAge(age)}` : '';
-  return `${label} ${(STATUS_LABEL[level] || level).toUpperCase()}${ageStr}`;
+  const statusStr = (STATUS_LABEL[level] || level).toUpperCase();
+  const timeStr = updatedAt ? ` ${fmtKstTime(updatedAt)} KST` : '';
+  const ageStr = age != null ? ` · ${fmtAge(age)}` : '';
+  return `${label} ${statusStr}${timeStr}${ageStr}`;
 }
 
 function renderCard(srcKey, src) {
@@ -480,18 +521,18 @@ function renderCard(srcKey, src) {
     const cron = src.cron;
     const liveLevel = src.freshness?.fallback ? 'fallback' : src.status;
     const liveAge = src.freshness?.age_min;
+    const liveTs = src.freshness?.updated_at;       // ISO UTC
     if (cron) {
       signalsHtml = `
         <div class="card-signals">
-          <span class="signal ${statusToClass(cron.status)}">${renderSignal('cron', cron.status, cron.age_min)}</span>
-          <span class="signal-sep">·</span>
-          <span class="signal ${statusToClass(liveLevel)}">${renderSignal('live', liveLevel, liveAge)}</span>
+          <span class="signal ${statusToClass(cron.status)}">${renderSignal('cron', cron.status, cron.age_min, cron.started_at)}</span>
+          <span class="signal ${statusToClass(liveLevel)}">${renderSignal('live', liveLevel, liveAge, liveTs)}</span>
         </div>
       `;
     } else {
       signalsHtml = `
         <div class="card-signals">
-          <span class="signal ${statusToClass(liveLevel)}">${renderSignal('live', liveLevel, liveAge)}</span>
+          <span class="signal ${statusToClass(liveLevel)}">${renderSignal('live', liveLevel, liveAge, liveTs)}</span>
         </div>
       `;
     }
@@ -533,6 +574,20 @@ function renderGroup(groupKey, group) {
   `;
 }
 
+function renderSuperSection(label, sub, groupKeys, snapGroups) {
+  const inner = groupKeys
+    .filter(gk => snapGroups[gk])
+    .map(gk => renderGroup(gk, snapGroups[gk]))
+    .join('');
+  if (!inner) return '';
+  return `
+    <section class="super-section">
+      <h2 class="super-heading">${label}<span class="super-sub">— ${sub}</span></h2>
+      <div class="groups">${inner}</div>
+    </section>
+  `;
+}
+
 async function refresh() {
   try {
     const r = await fetch(STATUS_URL + '?_=' + Date.now(), { cache: 'no-store' });
@@ -541,13 +596,15 @@ async function refresh() {
 
     setVerdict(snap.overall || 'unknown');
 
-    const groupsHtml = Object.entries(snap.groups || {})
-      .map(([gk, g]) => renderGroup(gk, g))
-      .join('');
-    document.getElementById('groups').innerHTML = groupsHtml;
+    const groups = snap.groups || {};
+    const html =
+      renderSuperSection('정기 데이터', 'Cron · Worker', ['daily', 'hourly'], groups) +
+      renderSuperSection('실시간 사용자 활동', 'Live KV', ['realtime'], groups);
+
+    document.getElementById('root').innerHTML = html;
   } catch (e) {
     setVerdict('unknown');
-    document.getElementById('groups').innerHTML = '';
+    document.getElementById('root').innerHTML = '';
     console.warn('status fetch failed:', e.message);
   }
 }

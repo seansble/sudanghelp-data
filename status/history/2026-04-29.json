@@ -1,16 +1,16 @@
 {
-  "schema_version": 3,
-  "checked_at": "2026-04-29T01:29:18.538483Z",
+  "schema_version": 4,
+  "checked_at": "2026-04-29T03:10:18.480503Z",
   "groups": {
     "daily": {
       "label": "하루 1회 갱신",
-      "description": "GitHub Actions cron · 09:10 KST 의도",
-      "trigger": "github-actions",
+      "description": "GH Actions cron · CF Worker daily snapshot",
+      "trigger": "github-actions / cloudflare-worker",
       "history_policy": "full",
       "retention_days": 365,
       "sources": {
         "rates": {
-          "label": "금리 비교 (FSS)",
+          "label": "정기예금·적금 금리 비교",
           "page_label": "금리 비교 페이지",
           "tech_context": "GitHub Actions cron · 금감원 공시 OpenAPI",
           "data_label": "FSS 예적금 금리 일일 공시",
@@ -25,7 +25,7 @@
           "freshness": {
             "updated_at": "2026-04-28T04:03:28.936832+00:00",
             "updated_at_raw": "2026-04-28T13:03:28.936832+09:00",
-            "age_min": 1285,
+            "age_min": 1386,
             "fallback": true
           },
           "delta": {
@@ -37,15 +37,12 @@
           },
           "http_status": 200,
           "cron": {
-            "status": "ok",
-            "last_commit_at": "2026-04-28T04:03:52Z",
-            "age_min": 1285,
-            "sha": "42d4191",
-            "message": "chore(rates): update rates 2026-04-28"
+            "status": "unauthorized",
+            "note": "MAIN_REPO_PAT secret 미설정"
           }
         },
         "promos": {
-          "label": "SNS 화제 특판",
+          "label": "정기예금·적금 SNS 특판",
           "page_label": "금리 비교 페이지 · SNS 특판 탭",
           "tech_context": "네이버 블로그 검색 + 카카오 Local API",
           "data_label": "SNS 적금 특판 (블로거 교차검증)",
@@ -60,7 +57,7 @@
           "freshness": {
             "updated_at": "2026-04-28T04:03:00+00:00",
             "updated_at_raw": "2026-04-28 13:03 KST",
-            "age_min": 1286,
+            "age_min": 1387,
             "fallback": true
           },
           "delta": {
@@ -72,72 +69,91 @@
           },
           "http_status": 200,
           "cron": {
-            "status": "ok",
-            "last_commit_at": "2026-04-28T04:03:52Z",
-            "age_min": 1285,
-            "sha": "42d4191",
-            "message": "chore(rates): update rates 2026-04-28"
+            "status": "unauthorized",
+            "note": "MAIN_REPO_PAT secret 미설정"
           }
-        }
-      }
-    },
-    "hourly": {
-      "label": "시간 단위 갱신",
-      "description": "Cloudflare Worker · 매시간 fetch",
-      "trigger": "cloudflare-worker",
-      "history_policy": "metrics_only",
-      "retention_days": 30,
-      "sources": {
-        "exchange-rates": {
-          "label": "일반 환율 (USD/JPY/EUR …)",
-          "page_label": "환율 계산기 · 여행 비용 페이지",
-          "tech_context": "Cloudflare Worker · sudanghelp-rates",
-          "data_label": "ExchangeRate API base 변환 (49 통화)",
-          "url": "https://sudanghelp-rates.sehwan4696.workers.dev/",
-          "page_url": "https://sudanghelp.co.kr/travel/exchange-calculator/",
+        },
+        "exchange-snapshot": {
+          "label": "여행 가계부 (날짜별 환율)",
+          "page_label": "여행 가계부",
+          "tech_context": "Cloudflare Worker · sudanghelp-rates 일일 KV 스냅샷",
+          "data_label": "오늘 KST 날짜의 환율 스냅샷 (49 통화)",
+          "url": "https://sudanghelp-rates.sehwan4696.workers.dev/rates/2026-04-29",
+          "page_url": "https://sudanghelp.co.kr/travel/expenses/",
           "status": "ok",
           "metrics": {
             "items": 49,
-            "size_bytes": 1136,
-            "hash": "8c463f7b882b45e26bc052c22fd9bb477b4182b6eb02139218ed9aad285f9f20"
+            "size_bytes": 806,
+            "hash": "0b8abd90586c76b37676eff8518850348bc70a4ca72fc0936c219bab7513feff"
           },
           "freshness": {
-            "updated_at": "2026-04-29T01:00:12.412000+00:00",
-            "updated_at_raw": "2026-04-29T01:00:12.412Z",
-            "age_min": 29,
-            "fallback": false
+            "updated_at": "2026-04-29T00:00:07.448000+00:00",
+            "updated_at_raw": "2026-04-29T00:00:07.448Z",
+            "age_min": 190,
+            "fallback": true
+          },
+          "delta": null,
+          "http_status": 200
+        },
+        "bank-exchange": {
+          "label": "환전 분석기",
+          "page_label": "환전 분석 페이지",
+          "tech_context": "Cloudflare Worker · bank-exchange-rates → Supabase",
+          "data_label": "시중은행·핀테크 13곳 환율 + 스프레드",
+          "url": "https://bank-exchange-rates.sehwan4696.workers.dev/",
+          "page_url": "https://sudanghelp.co.kr/travel/exchange-analysis/",
+          "status": "unknown",
+          "metrics": {
+            "items": 0,
+            "size_bytes": 54,
+            "hash": "a54673f82ed7e2d6f1599c749ff371794bca819a8bd59dacc3f50f18d0893cf8"
+          },
+          "freshness": {
+            "updated_at": "",
+            "updated_at_raw": "None",
+            "age_min": null,
+            "fallback": true
           },
           "delta": {
-            "items": 0,
-            "size_bytes": 17,
+            "items": -73,
+            "size_bytes": -15724,
             "hash_changed": true,
             "changed_vs_yesterday": true,
             "compared_to": "yesterday"
           },
           "http_status": 200
-        },
-        "bank-exchange": {
-          "label": "은행별 환율 + 스프레드",
-          "page_label": "환전 분석 페이지",
-          "tech_context": "Cloudflare Worker · bank-exchange-rates → Supabase",
-          "data_label": "은행별 환율 + 스프레드 (현찰/송금)",
-          "url": "https://bank-exchange-rates.sehwan4696.workers.dev/",
-          "page_url": "https://sudanghelp.co.kr/travel/exchange-analysis/",
+        }
+      }
+    },
+    "hourly": {
+      "label": "시간 단위 갱신",
+      "description": "Cloudflare Worker · 매시간 정각 갱신",
+      "trigger": "cloudflare-worker",
+      "history_policy": "metrics_only",
+      "retention_days": 30,
+      "sources": {
+        "exchange-current": {
+          "label": "환율 — 환율 계산기·여행 가계부",
+          "page_label": "환율 계산기 · 여행 가계부",
+          "tech_context": "Cloudflare Worker · sudanghelp-rates hourly",
+          "data_label": "현재 환율 (49 통화, 정각 갱신)",
+          "url": "https://sudanghelp-rates.sehwan4696.workers.dev/",
+          "page_url": "https://sudanghelp.co.kr/travel/exchange-calculator/",
           "status": "ok",
           "metrics": {
-            "items": 73,
-            "size_bytes": 15786,
-            "hash": "75ceff21ba26ea56f99794668c7c55b841bd4970a2c4f07a9cb13e58670ff813"
+            "items": 49,
+            "size_bytes": 1133,
+            "hash": "fc97c3f6670a2ac5461eaf8cdd9df50944e47e2c875490792673f68c21497785"
           },
           "freshness": {
-            "updated_at": "2026-04-28T23:57:36+00:00",
-            "updated_at_raw": "2026-04-29 08:57:36",
-            "age_min": 91,
+            "updated_at": "2026-04-29T03:00:08.428000+00:00",
+            "updated_at_raw": "2026-04-29T03:00:08.428Z",
+            "age_min": 10,
             "fallback": false
           },
           "delta": {
             "items": 0,
-            "size_bytes": 8,
+            "size_bytes": 14,
             "hash_changed": true,
             "changed_vs_yesterday": true,
             "compared_to": "yesterday"
@@ -147,14 +163,14 @@
       }
     },
     "realtime": {
-      "label": "실시간 (On-demand)",
+      "label": "실시간 사용자 활동",
       "description": "Cloudflare Worker · KV 즉시 반영",
       "trigger": "cloudflare-worker-kv",
       "history_policy": "none",
       "retention_days": 0,
       "sources": {
         "feedback": {
-          "label": "피드백 위젯",
+          "label": "여행 페이지 피드백 (리뷰·좋아요)",
           "page_label": "여행 페이지 전반 · 피드백 위젯",
           "tech_context": "Cloudflare Worker · sudanghelpfeedback (KV)",
           "data_label": "리뷰 · 좋아요/싫어요 · 조회수",
@@ -170,13 +186,13 @@
             "updated_at": "",
             "updated_at_raw": "",
             "age_min": null,
-            "fallback": false
+            "fallback": true
           },
           "delta": {
             "items": 1,
             "size_bytes": 0,
             "hash_changed": true,
-            "changed_vs_yesterday": false,
+            "changed_vs_yesterday": true,
             "compared_to": "yesterday"
           },
           "http_status": 200
@@ -184,5 +200,5 @@
       }
     }
   },
-  "overall": "fallback"
+  "overall": "unknown"
 }
