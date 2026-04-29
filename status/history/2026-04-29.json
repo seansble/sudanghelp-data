@@ -1,6 +1,6 @@
 {
   "schema_version": 4,
-  "checked_at": "2026-04-29T03:10:18.480503Z",
+  "checked_at": "2026-04-29T03:26:11.336458Z",
   "groups": {
     "daily": {
       "label": "하루 1회 갱신",
@@ -23,9 +23,10 @@
             "hash": "810008a751e2eadc17aeea71c0b0d4c35668c1a82347251fc79b2d5c13f8bef6"
           },
           "freshness": {
+            "time_status": "ok",
             "updated_at": "2026-04-28T04:03:28.936832+00:00",
             "updated_at_raw": "2026-04-28T13:03:28.936832+09:00",
-            "age_min": 1386,
+            "age_min": 1402,
             "fallback": true
           },
           "delta": {
@@ -36,6 +37,11 @@
             "compared_to": "yesterday"
           },
           "http_status": 200,
+          "content": {
+            "status": "ok",
+            "reason": null,
+            "items": 1666
+          },
           "cron": {
             "status": "unauthorized",
             "note": "MAIN_REPO_PAT secret 미설정"
@@ -55,9 +61,10 @@
             "hash": "3459060c20c8dbb4e45d983afa36f35f7310756accb664ad4ca2e4fdbf75152f"
           },
           "freshness": {
+            "time_status": "ok",
             "updated_at": "2026-04-28T04:03:00+00:00",
             "updated_at_raw": "2026-04-28 13:03 KST",
-            "age_min": 1387,
+            "age_min": 1403,
             "fallback": true
           },
           "delta": {
@@ -68,6 +75,11 @@
             "compared_to": "yesterday"
           },
           "http_status": 200,
+          "content": {
+            "status": "ok",
+            "reason": null,
+            "items": 8
+          },
           "cron": {
             "status": "unauthorized",
             "note": "MAIN_REPO_PAT secret 미설정"
@@ -87,13 +99,19 @@
             "hash": "0b8abd90586c76b37676eff8518850348bc70a4ca72fc0936c219bab7513feff"
           },
           "freshness": {
+            "time_status": "ok",
             "updated_at": "2026-04-29T00:00:07.448000+00:00",
             "updated_at_raw": "2026-04-29T00:00:07.448Z",
-            "age_min": 190,
+            "age_min": 206,
             "fallback": true
           },
           "delta": null,
-          "http_status": 200
+          "http_status": 200,
+          "content": {
+            "status": "ok",
+            "reason": null,
+            "items": 49
+          }
         },
         "bank-exchange": {
           "label": "환전 분석기",
@@ -102,13 +120,14 @@
           "data_label": "시중은행·핀테크 13곳 환율 + 스프레드",
           "url": "https://bank-exchange-rates.sehwan4696.workers.dev/",
           "page_url": "https://sudanghelp.co.kr/travel/exchange-analysis/",
-          "status": "unknown",
+          "status": "down",
           "metrics": {
             "items": 0,
             "size_bytes": 54,
             "hash": "a54673f82ed7e2d6f1599c749ff371794bca819a8bd59dacc3f50f18d0893cf8"
           },
           "freshness": {
+            "time_status": "unknown",
             "updated_at": "",
             "updated_at_raw": "None",
             "age_min": null,
@@ -121,7 +140,13 @@
             "changed_vs_yesterday": true,
             "compared_to": "yesterday"
           },
-          "http_status": 200
+          "http_status": 200,
+          "content": {
+            "status": "down",
+            "reason": "fallback or empty",
+            "items": 0
+          },
+          "error": "fallback or empty"
         }
       }
     },
@@ -143,12 +168,13 @@
           "metrics": {
             "items": 49,
             "size_bytes": 1133,
-            "hash": "fc97c3f6670a2ac5461eaf8cdd9df50944e47e2c875490792673f68c21497785"
+            "hash": "d9021a8e228493dbede29ffcb8d9ed1b2e1cdf26d8afda011df5c4a0f2abc01a"
           },
           "freshness": {
+            "time_status": "ok",
             "updated_at": "2026-04-29T03:00:08.428000+00:00",
             "updated_at_raw": "2026-04-29T03:00:08.428Z",
-            "age_min": 10,
+            "age_min": 26,
             "fallback": false
           },
           "delta": {
@@ -158,7 +184,12 @@
             "changed_vs_yesterday": true,
             "compared_to": "yesterday"
           },
-          "http_status": 200
+          "http_status": 200,
+          "content": {
+            "status": "ok",
+            "reason": null,
+            "items": 49
+          }
         }
       }
     },
@@ -183,6 +214,7 @@
             "hash": "7029e7ac9d434c6a26059dec43ae9e5325a3536cd5e1173ccd881b238085f77e"
           },
           "freshness": {
+            "time_status": "ok",
             "updated_at": "",
             "updated_at_raw": "",
             "age_min": null,
@@ -195,10 +227,15 @@
             "changed_vs_yesterday": true,
             "compared_to": "yesterday"
           },
-          "http_status": 200
+          "http_status": 200,
+          "content": {
+            "status": "ok",
+            "reason": null,
+            "items": 970
+          }
         }
       }
     }
   },
-  "overall": "unknown"
+  "overall": "down"
 }

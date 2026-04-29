@@ -484,6 +484,14 @@ function renderSignal(label, level, age, updatedAt) {
   return `${label} ${statusStr}${timeStr}${ageStr}`;
 }
 
+// 2-tier 의 2차 (내용) 시그널
+function renderContentSignal(content) {
+  if (!content) return '내용 —';
+  const statusStr = (STATUS_LABEL[content.status] || content.status || 'unknown').toUpperCase();
+  const reason = content.reason ? ` · ${content.reason}` : '';
+  return `내용 ${statusStr}${reason}`;
+}
+
 function renderCard(srcKey, src) {
   const combined = combinedStatus(src);
   const cls = statusToClass(combined);
@@ -520,24 +528,23 @@ function renderCard(srcKey, src) {
   let signalsHtml = '';
   if (!isPending) {
     const cron = src.cron;
-    // v4: fallback flag 은 informational. live 시그널 색·배지는 src.status (age 기반) 만 사용.
-    const liveLevel = src.status;
-    const liveAge = src.freshness?.age_min;
-    const liveTs = src.freshness?.updated_at;       // ISO UTC
-    if (cron) {
-      signalsHtml = `
-        <div class="card-signals">
-          <span class="signal ${statusToClass(cron.status)}">${renderSignal('cron', cron.status, cron.age_min, cron.started_at)}</span>
-          <span class="signal ${statusToClass(liveLevel)}">${renderSignal('live', liveLevel, liveAge, liveTs)}</span>
-        </div>
-      `;
-    } else {
-      signalsHtml = `
-        <div class="card-signals">
-          <span class="signal ${statusToClass(liveLevel)}">${renderSignal('live', liveLevel, liveAge, liveTs)}</span>
-        </div>
-      `;
-    }
+    // v4.3: 2-tier 시그널
+    //   1차 (시간): freshness.time_status — age vs cadence 임계값
+    //   2차 (내용): content.status — items 정상 여부
+    const timeLevel = src.freshness?.time_status || src.status;
+    const timeAge = src.freshness?.age_min;
+    const timeTs = src.freshness?.updated_at;
+    const content = src.content;
+
+    const cronLine = cron
+      ? `<span class="signal ${statusToClass(cron.status)}">${renderSignal('cron', cron.status, cron.age_min, cron.started_at)}</span>`
+      : '';
+    const timeLine = `<span class="signal ${statusToClass(timeLevel)}">${renderSignal('시간', timeLevel, timeAge, timeTs)}</span>`;
+    const contentLine = content
+      ? `<span class="signal ${statusToClass(content.status)}">${renderContentSignal(content)}</span>`
+      : '';
+
+    signalsHtml = `<div class="card-signals">${cronLine}${timeLine}${contentLine}</div>`;
   } else {
     signalsHtml = `<div class="card-pending-note">${src.data_label || ''}</div>`;
   }

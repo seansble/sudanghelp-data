@@ -264,6 +264,15 @@ def classify_freshness(age_min: int | None, group_key: str) -> str:
     return "down"
 
 
+# v4.3: 2-tier verdict — 시간(freshness) + 내용(content) 분리, 최종은 worst.
+# 랭킹: down 이 가장 worst (확실히 망가진 신호 우선). unknown 은 그보다 약함 (모름).
+_STATUS_RANK = {"ok": 0, "stale": 1, "unknown": 2, "down": 3, "pending": 99}
+
+def worst_of(*statuses: str) -> str:
+    """Return the worst status. ok < stale < unknown < down."""
+    return max(statuses, key=lambda s: _STATUS_RANK.get(s, 99))
+
+
 # ───────── Items counter ─────────
 def count_items(data: dict, kind: str) -> int:
     if kind == "rates":
@@ -386,17 +395,30 @@ def poll_json_source(group_key: str, src_cfg: dict, url: str, now: datetime, pre
             updated_raw = str(updated_raw_val) if updated_raw_val != "" else ""
             updated_iso = parse_updated(updated_raw_val)
             age = age_minutes(updated_iso, now)
-            status = classify_freshness(age, group_key)
+            time_status = classify_freshness(age, group_key)
         else:
-            # 응답에 timestamp 없음 (e.g. feedback KV) — HTTP 200 = ok
+            # 응답에 timestamp 없음 (e.g. feedback KV) — 시간 검사 미적용
             updated_raw = ""
             updated_iso = ""
             age = None
-            status = "ok"
+            time_status = "ok"
 
         same_as_last_poll = bool(prev_metrics and prev_metrics.get("hash") == sha)
 
-        out["status"]      = status
+        # 2-tier verdict
+        # 1차 (시간): time_status — age vs cadence 임계값
+        # 2차 (내용): content_status — items=0 이면 fallback. feedback 만 예외.
+        if items == 0 and src_cfg.get("items_kind") != "feedback_views":
+            content_status = "down"
+            content_reason = "fallback or empty"
+        else:
+            content_status = "ok"
+            content_reason = None
+
+        # 최종: worst(시간, 내용)
+        final_status = worst_of(time_status, content_status)
+
+        out["status"]      = final_status
         out["http_status"] = 200
         out["metrics"] = {
             "items":      items,
@@ -404,11 +426,19 @@ def poll_json_source(group_key: str, src_cfg: dict, url: str, now: datetime, pre
             "hash":       sha,
         }
         out["freshness"] = {
+            "time_status":    time_status,           # 1차
             "updated_at":     updated_iso,
             "updated_at_raw": updated_raw,
             "age_min":        age,
             "fallback":       same_as_last_poll,
         }
+        out["content"] = {                           # 2차 (신설)
+            "status": content_status,
+            "reason": content_reason,
+            "items":  items,
+        }
+        if content_status != "ok":
+            out["error"] = content_reason
     except urllib.error.HTTPError as e:
         out["status"]      = "down"
         out["http_status"] = e.code
