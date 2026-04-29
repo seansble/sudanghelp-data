@@ -72,7 +72,7 @@ GROUPS: dict = {
             "rates": {
                 "label": "정기예금·적금 금리 비교",
                 "page_label": "금리 비교 페이지",
-                "tech_context": "GitHub Actions cron · 금감원 공시 OpenAPI",
+                "tech_context": "GH Actions (Sudanghelp/update-rates.yml) · 금감원 FSS OpenAPI → 정적 JSON",
                 "data_label": "FSS 예적금 금리 일일 공시",
                 "url": "https://sudanghelp.co.kr/compoundcalc/rates/rates.json",
                 "page_url": "https://sudanghelp.co.kr/compoundcalc/rates/",
@@ -84,7 +84,7 @@ GROUPS: dict = {
             "promos": {
                 "label": "정기예금·적금 SNS 특판",
                 "page_label": "금리 비교 페이지 · SNS 특판 탭",
-                "tech_context": "네이버 블로그 검색 + 카카오 Local API",
+                "tech_context": "GH Actions (Sudanghelp/update-rates.yml) · 네이버 블로그 + 카카오 Local API → 정적 JSON",
                 "data_label": "SNS 적금 특판 (블로거 교차검증)",
                 "url": "https://sudanghelp.co.kr/compoundcalc/rates/featured_promos.json",
                 "page_url": "https://sudanghelp.co.kr/compoundcalc/rates/#sns-promos",
@@ -107,8 +107,8 @@ GROUPS: dict = {
             "bank-exchange": {
                 "label": "환전 분석기",
                 "page_label": "환전 분석 페이지",
-                "tech_context": "Cloudflare Worker · bank-exchange-rates → Supabase",
-                "data_label": "시중은행·핀테크 13곳 환율 + 스프레드",
+                "tech_context": "GH Actions (exchange-rate-crawler) → Supabase → CF Worker (bank-exchange-rates)",
+                "data_label": "시중은행·핀테크 13곳 환율 + 스프레드 (daily insert)",
                 "url": "https://bank-exchange-rates.sehwan4696.workers.dev/",
                 "page_url": "https://sudanghelp.co.kr/travel/exchange-analysis/",
                 "fetch": "json",
