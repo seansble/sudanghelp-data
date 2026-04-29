@@ -1,6 +1,6 @@
 {
   "schema_version": 4,
-  "checked_at": "2026-04-29T04:26:48.233056Z",
+  "checked_at": "2026-04-29T05:15:12.635498Z",
   "groups": {
     "daily": {
       "label": "하루 단위 갱신",
@@ -26,8 +26,8 @@
             "time_status": "ok",
             "updated_at": "2026-04-29T04:01:00.779920+00:00",
             "updated_at_raw": "2026-04-29T13:01:00.779920+09:00",
-            "age_min": 25,
-            "fallback": false
+            "age_min": 74,
+            "fallback": true
           },
           "delta": {
             "items": 0,
@@ -44,14 +44,14 @@
           },
           "cron": {
             "status": "down",
-            "http_status": 403,
-            "error": "HTTP Error 403: Forbidden"
+            "http_status": 404,
+            "error": "HTTP Error 404: Not Found"
           }
         },
         "promos": {
           "label": "정기예금·적금 SNS 특판",
           "page_label": "금리 비교 페이지 · SNS 특판 탭",
-          "tech_context": "GH Actions (Sudanghelp/update-rates.yml) · 네이버 블로그 + 카카오 Local API → 정적 JSON",
+          "tech_context": "GH Actions (Sudanghelp/update-rates.yml) · 네이버 블로그 + 카카오맵 → 정적 JSON",
           "data_label": "SNS 적금 특판 (블로거 교차검증)",
           "url": "https://sudanghelp.co.kr/compoundcalc/rates/featured_promos.json",
           "page_url": "https://sudanghelp.co.kr/compoundcalc/rates/#sns-promos",
@@ -65,8 +65,8 @@
             "time_status": "ok",
             "updated_at": "2026-04-29T04:01:00+00:00",
             "updated_at_raw": "2026-04-29 13:01 KST",
-            "age_min": 25,
-            "fallback": false
+            "age_min": 74,
+            "fallback": true
           },
           "delta": {
             "items": 2,
@@ -83,8 +83,8 @@
           },
           "cron": {
             "status": "down",
-            "http_status": 403,
-            "error": "HTTP Error 403: Forbidden"
+            "http_status": 404,
+            "error": "HTTP Error 404: Not Found"
           }
         },
         "exchange-snapshot": {
@@ -104,7 +104,7 @@
             "time_status": "ok",
             "updated_at": "2026-04-29T00:00:07.448000+00:00",
             "updated_at_raw": "2026-04-29T00:00:07.448Z",
-            "age_min": 266,
+            "age_min": 315,
             "fallback": true
           },
           "delta": null,
@@ -132,8 +132,8 @@
             "time_status": "ok",
             "updated_at": "2026-04-29T03:54:30+00:00",
             "updated_at_raw": "2026-04-29 12:54:30",
-            "age_min": 32,
-            "fallback": false
+            "age_min": 80,
+            "fallback": true
           },
           "delta": {
             "items": 0,
@@ -168,19 +168,19 @@
           "status": "ok",
           "metrics": {
             "items": 49,
-            "size_bytes": 1124,
-            "hash": "cfc31a30db54de01a2302eea7ea12a1407ae02285880065693ae8d72f86abe28"
+            "size_bytes": 1133,
+            "hash": "61beb67fb5ae52f6ace91bc4ef20d306b3aa4842eea78eed81c0cba461258e17"
           },
           "freshness": {
             "time_status": "ok",
-            "updated_at": "2026-04-29T04:00:07.422000+00:00",
-            "updated_at_raw": "2026-04-29T04:00:07.422Z",
-            "age_min": 26,
+            "updated_at": "2026-04-29T05:00:06.661000+00:00",
+            "updated_at_raw": "2026-04-29T05:00:06.661Z",
+            "age_min": 15,
             "fallback": false
           },
           "delta": {
             "items": 0,
-            "size_bytes": 5,
+            "size_bytes": 14,
             "hash_changed": true,
             "changed_vs_yesterday": true,
             "compared_to": "yesterday"
@@ -219,7 +219,7 @@
             "updated_at": "",
             "updated_at_raw": "",
             "age_min": null,
-            "fallback": false
+            "fallback": true
           },
           "delta": {
             "items": 2,
