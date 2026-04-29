@@ -1,6 +1,6 @@
 {
   "schema_version": 4,
-  "checked_at": "2026-04-29T03:28:53.594399Z",
+  "checked_at": "2026-04-29T03:29:30.905327Z",
   "groups": {
     "daily": {
       "label": "하루 단위 갱신",
@@ -26,7 +26,7 @@
             "time_status": "ok",
             "updated_at": "2026-04-28T04:03:28.936832+00:00",
             "updated_at_raw": "2026-04-28T13:03:28.936832+09:00",
-            "age_min": 1405,
+            "age_min": 1406,
             "fallback": true
           },
           "delta": {
@@ -64,7 +64,7 @@
             "time_status": "ok",
             "updated_at": "2026-04-28T04:03:00+00:00",
             "updated_at_raw": "2026-04-28 13:03 KST",
-            "age_min": 1405,
+            "age_min": 1406,
             "fallback": true
           },
           "delta": {
@@ -102,7 +102,7 @@
             "time_status": "ok",
             "updated_at": "2026-04-29T00:00:07.448000+00:00",
             "updated_at_raw": "2026-04-29T00:00:07.448Z",
-            "age_min": 208,
+            "age_min": 209,
             "fallback": true
           },
           "delta": null,
@@ -168,13 +168,13 @@
           "metrics": {
             "items": 49,
             "size_bytes": 1133,
-            "hash": "b58c26ab881c80f8881a7f82482d0a654854f30ab240866e1f0b5699174325a8"
+            "hash": "e217c7b42ffaba57122d1aef252433f33bf6b7846d2dec5bfdc83c00e02bfbff"
           },
           "freshness": {
             "time_status": "ok",
             "updated_at": "2026-04-29T03:00:08.428000+00:00",
             "updated_at_raw": "2026-04-29T03:00:08.428Z",
-            "age_min": 28,
+            "age_min": 29,
             "fallback": false
           },
           "delta": {
@@ -194,7 +194,7 @@
       }
     },
     "realtime": {
-      "label": "실시간 사용자 활동",
+      "label": "실시간 갱신",
       "description": "Cloudflare Worker · KV 즉시 반영",
       "trigger": "cloudflare-worker-kv",
       "history_policy": "none",

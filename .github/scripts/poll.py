@@ -138,7 +138,7 @@ GROUPS: dict = {
         },
     },
     "realtime": {
-        "label": "실시간 사용자 활동",
+        "label": "실시간 갱신",
         "description": "Cloudflare Worker · KV 즉시 반영",
         "trigger": "cloudflare-worker-kv",
         "history_policy": "none",
