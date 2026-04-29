@@ -1,9 +1,9 @@
 {
   "schema_version": 4,
-  "checked_at": "2026-04-29T03:26:11.336458Z",
+  "checked_at": "2026-04-29T03:28:53.594399Z",
   "groups": {
     "daily": {
-      "label": "하루 1회 갱신",
+      "label": "하루 단위 갱신",
       "description": "GH Actions cron · CF Worker daily snapshot",
       "trigger": "github-actions / cloudflare-worker",
       "history_policy": "full",
@@ -26,7 +26,7 @@
             "time_status": "ok",
             "updated_at": "2026-04-28T04:03:28.936832+00:00",
             "updated_at_raw": "2026-04-28T13:03:28.936832+09:00",
-            "age_min": 1402,
+            "age_min": 1405,
             "fallback": true
           },
           "delta": {
@@ -64,7 +64,7 @@
             "time_status": "ok",
             "updated_at": "2026-04-28T04:03:00+00:00",
             "updated_at_raw": "2026-04-28 13:03 KST",
-            "age_min": 1403,
+            "age_min": 1405,
             "fallback": true
           },
           "delta": {
@@ -102,7 +102,7 @@
             "time_status": "ok",
             "updated_at": "2026-04-29T00:00:07.448000+00:00",
             "updated_at_raw": "2026-04-29T00:00:07.448Z",
-            "age_min": 206,
+            "age_min": 208,
             "fallback": true
           },
           "delta": null,
@@ -168,13 +168,13 @@
           "metrics": {
             "items": 49,
             "size_bytes": 1133,
-            "hash": "d9021a8e228493dbede29ffcb8d9ed1b2e1cdf26d8afda011df5c4a0f2abc01a"
+            "hash": "b58c26ab881c80f8881a7f82482d0a654854f30ab240866e1f0b5699174325a8"
           },
           "freshness": {
             "time_status": "ok",
             "updated_at": "2026-04-29T03:00:08.428000+00:00",
             "updated_at_raw": "2026-04-29T03:00:08.428Z",
-            "age_min": 26,
+            "age_min": 28,
             "fallback": false
           },
           "delta": {

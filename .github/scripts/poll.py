@@ -63,7 +63,7 @@ def kst_today_str(now_utc: datetime) -> str:
 # 카드명·verdict·소비처를 한 곳에. 새 source 추가 시 여기만 편집.
 GROUPS: dict = {
     "daily": {
-        "label": "하루 1회 갱신",
+        "label": "하루 단위 갱신",
         "description": "GH Actions cron · CF Worker daily snapshot",
         "trigger": "github-actions / cloudflare-worker",
         "history_policy": "full",
