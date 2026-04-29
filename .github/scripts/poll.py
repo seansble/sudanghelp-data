@@ -84,7 +84,7 @@ GROUPS: dict = {
             "promos": {
                 "label": "정기예금·적금 SNS 특판",
                 "page_label": "금리 비교 페이지 · SNS 특판 탭",
-                "tech_context": "GH Actions (Sudanghelp/update-rates.yml) · 네이버 블로그 + 카카오 Local API → 정적 JSON",
+                "tech_context": "GH Actions (Sudanghelp/update-rates.yml) · 네이버 블로그 + 카카오맵 → 정적 JSON",
                 "data_label": "SNS 적금 특판 (블로거 교차검증)",
                 "url": "https://sudanghelp.co.kr/compoundcalc/rates/featured_promos.json",
                 "page_url": "https://sudanghelp.co.kr/compoundcalc/rates/#sns-promos",
@@ -295,6 +295,9 @@ _workflow_cache: dict = {}
 def check_workflow_run(workflow_file: str, now: datetime) -> dict:
     """Last run of a GitHub Actions workflow. Cached per workflow_file.
 
+    Public repo 라 익명 호출 가능 (60 req/h, 우리는 1/h 미사용).
+    PAT 있으면 사용 (5000 req/h 상향). PAT 401/403 시 익명으로 fallback.
+
     Output:
       status:      ok | stale | down | unauthorized | unknown
       conclusion:  success | failure | cancelled | None (in_progress)
@@ -303,19 +306,28 @@ def check_workflow_run(workflow_file: str, now: datetime) -> dict:
     if workflow_file in _workflow_cache:
         return _workflow_cache[workflow_file]
 
-    if not GH_TOKEN:
-        result = {"status": "unauthorized", "note": "MAIN_REPO_PAT secret 미설정"}
-        _workflow_cache[workflow_file] = result
-        return result
-
     url = (f"https://api.github.com/repos/{GH_REPO}"
            f"/actions/workflows/{urllib.parse.quote(workflow_file)}/runs?per_page=1")
+    base_headers = {
+        "Accept": "application/vnd.github+json",
+        "X-GitHub-Api-Version": "2022-11-28",
+    }
+
+    def _try_fetch(use_auth: bool):
+        h = dict(base_headers)
+        if use_auth and GH_TOKEN:
+            h["Authorization"] = f"Bearer {GH_TOKEN}"
+        return fetch(url, headers=h)
+
     try:
-        body, _ = fetch(url, headers={
-            "Authorization": f"Bearer {GH_TOKEN}",
-            "Accept": "application/vnd.github+json",
-            "X-GitHub-Api-Version": "2022-11-28",
-        })
+        try:
+            body, _ = _try_fetch(use_auth=True)
+        except urllib.error.HTTPError as e:
+            # PAT 가 401/403 받으면 익명으로 retry (public repo)
+            if e.code in (401, 403) and GH_TOKEN:
+                body, _ = _try_fetch(use_auth=False)
+            else:
+                raise
         payload = json.loads(body)
         runs = payload.get("workflow_runs", [])
         if not runs:
@@ -358,11 +370,17 @@ def check_workflow_run(workflow_file: str, now: datetime) -> dict:
         _workflow_cache[workflow_file] = result
         return result
     except urllib.error.HTTPError as e:
-        result = {"status": "down", "http_status": e.code, "error": str(e)}
+        # 401/403 = 인증 실패 (cron 자체는 멀쩡할 수 있음). down 으로 elevation 안 함.
+        # 429 = rate limit. 5xx = GH 측 일시 장애.
+        if e.code in (401, 403, 429):
+            status = "unauthorized"
+        else:
+            status = "down"
+        result = {"status": status, "http_status": e.code, "error": str(e)}
         _workflow_cache[workflow_file] = result
         return result
     except Exception as e:
-        result = {"status": "down", "error": f"{type(e).__name__}: {e}"}
+        result = {"status": "unknown", "error": f"{type(e).__name__}: {e}"}
         _workflow_cache[workflow_file] = result
         return result
 

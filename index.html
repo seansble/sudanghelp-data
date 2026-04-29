@@ -178,6 +178,19 @@ a { color: inherit; text-decoration: none; }
   }
 }
 
+/* Cadence block (cadence-row 의 wrapper, 소분류 라벨 포함) */
+.cadence-block { margin-bottom: 24px; }
+.cadence-block:last-child { margin-bottom: 0; }
+.cadence-sub-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  color: var(--text-2);
+  text-transform: uppercase;
+  margin: 0 0 10px 4px;
+}
+
 /* 카드 cadence 배지 (어느 그룹 카드인지 표기) */
 .card-cadence-tag {
   font-family: var(--mono);
@@ -595,15 +608,25 @@ function renderCard(srcKey, src, groupKey) {
 
 function renderSuperSection(label, sub, groupKeys, snapGroups) {
   // 각 cadence 마다 별도 row — 모바일 가로 스크롤 단위 / 데스크탑 grid 행
-  const rows = groupKeys
-    .filter(gk => snapGroups[gk])
-    .map(gk => {
-      const cards = Object.entries(snapGroups[gk].sources)
-        .map(([k, s]) => renderCard(k, s, gk))
-        .join('');
-      return `<div class="cadence-row" data-cadence="${gk}">${cards}</div>`;
-    })
-    .join('');
+  const filtered = groupKeys.filter(gk => snapGroups[gk]);
+  const showSubLabels = filtered.length > 1;   // 다중 cadence 일 때만 소분류 표시
+
+  const rows = filtered.map(gk => {
+    const group = snapGroups[gk];
+    const cards = Object.entries(group.sources)
+      .map(([k, s]) => renderCard(k, s, gk))
+      .join('');
+    const subLabel = showSubLabels
+      ? `<div class="cadence-sub-label">${group.label}</div>`
+      : '';
+    return `
+      <div class="cadence-block" data-cadence="${gk}">
+        ${subLabel}
+        <div class="cadence-row">${cards}</div>
+      </div>
+    `;
+  }).join('');
+
   if (!rows) return '';
   return `
     <section class="super-section">
@@ -622,10 +645,10 @@ async function refresh() {
     setVerdict(snap.overall || 'unknown');
 
     const groups = snap.groups || {};
-    // 순서: 실시간 → 시간 단위 → 매일 단위 (freshest 우선, 운영 패턴 자연 매핑)
+    // 순서: 실시간 → 시간 단위 → 매일 단위 (freshest 우선)
     const html =
-      renderSuperSection('실시간 사용자 활동', 'Live KV',     ['realtime'],         groups) +
-      renderSuperSection('정기 데이터',         'Cron · Worker', ['hourly', 'daily'], groups);
+      renderSuperSection('실시간 갱신', 'Live KV',         ['realtime'],         groups) +
+      renderSuperSection('정기 데이터', 'Cron · Worker',   ['hourly', 'daily'], groups);
 
     document.getElementById('root').innerHTML = html;
   } catch (e) {
