@@ -148,24 +148,48 @@ a { color: inherit; text-decoration: none; }
   margin-left: 8px;
 }
 
-/* ========== Groups grid (cadence 그룹 — auto-fit) ========== */
-.groups {
+/* ========== Cadence rows (카드 flat layout) ========== */
+/* 데스크탑: auto-fit 그리드 (보통 3열). 모바일: 가로 스크롤 carousel + snap. */
+.cadence-row {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 28px;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.cadence-row:last-child { margin-bottom: 0; }
+
+@media (max-width: 768px) {
+  .cadence-row {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;            /* Firefox */
+    -ms-overflow-style: none;         /* IE10+ */
+    padding-bottom: 2px;
+    gap: 12px;
+  }
+  .cadence-row::-webkit-scrollbar { display: none; }   /* Chrome/Safari */
+  .cadence-row > .card {
+    flex: 0 0 calc(100% - 8px);       /* 한 카드가 거의 화면 전체 */
+    max-width: 420px;
+    scroll-snap-align: start;
+    min-width: 0;
+  }
 }
 
-.group {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+/* 카드 cadence 배지 (어느 그룹 카드인지 표기) */
+.card-cadence-tag {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.16em;
+  color: var(--text-3);
+  text-transform: uppercase;
+  margin-bottom: 6px;
 }
 
-.group-hd {
-  padding-bottom: 12px;
-  margin-bottom: 4px;
-  border-bottom: 1px solid var(--border);
-}
+/* (Legacy — 미사용, 추후 제거) */
+.groups, .group, .group-hd { /* deprecated v4.4 */ }
 .group-cadence {
   font-family: var(--mono);
   font-size: 10px;
@@ -492,7 +516,7 @@ function renderContentSignal(content) {
   return `내용 ${statusStr}${reason}`;
 }
 
-function renderCard(srcKey, src) {
+function renderCard(srcKey, src, groupKey) {
   const combined = combinedStatus(src);
   const cls = statusToClass(combined);
   const isPending = src.status === 'pending';
@@ -553,8 +577,11 @@ function renderCard(srcKey, src) {
     ? `<a href="${src.page_url}" target="_blank" rel="noopener">${src.page_label}</a>`
     : src.page_label;
 
+  const cadenceTag = groupKey ? `<div class="card-cadence-tag">${groupKey}</div>` : '';
+
   return `
     <article class="card ${isPending ? 'pending' : ''}">
+      ${cadenceTag}
       <div class="card-hd">
         <div class="card-name">${link}</div>
         <span class="card-status ${cls}">${statusToTag(combined)}</span>
@@ -566,33 +593,22 @@ function renderCard(srcKey, src) {
   `;
 }
 
-function renderGroup(groupKey, group) {
-  const cards = Object.entries(group.sources)
-    .map(([k, s]) => renderCard(k, s))
-    .join('');
-
-  return `
-    <section class="group" data-group="${groupKey}">
-      <header class="group-hd">
-        <div class="group-cadence">${groupKey}</div>
-        <div class="group-label">${group.label}</div>
-        <div class="group-desc">${group.description}</div>
-      </header>
-      ${cards}
-    </section>
-  `;
-}
-
 function renderSuperSection(label, sub, groupKeys, snapGroups) {
-  const inner = groupKeys
+  // 각 cadence 마다 별도 row — 모바일 가로 스크롤 단위 / 데스크탑 grid 행
+  const rows = groupKeys
     .filter(gk => snapGroups[gk])
-    .map(gk => renderGroup(gk, snapGroups[gk]))
+    .map(gk => {
+      const cards = Object.entries(snapGroups[gk].sources)
+        .map(([k, s]) => renderCard(k, s, gk))
+        .join('');
+      return `<div class="cadence-row" data-cadence="${gk}">${cards}</div>`;
+    })
     .join('');
-  if (!inner) return '';
+  if (!rows) return '';
   return `
     <section class="super-section">
       <h2 class="super-heading">${label}<span class="super-sub">— ${sub}</span></h2>
-      <div class="groups">${inner}</div>
+      ${rows}
     </section>
   `;
 }
