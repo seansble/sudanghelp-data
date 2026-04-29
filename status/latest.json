@@ -1,6 +1,6 @@
 {
   "schema_version": 4,
-  "checked_at": "2026-04-29T17:12:56.245330Z",
+  "checked_at": "2026-04-29T19:03:25.673740Z",
   "groups": {
     "daily": {
       "label": "하루 단위 갱신",
@@ -26,7 +26,7 @@
             "time_status": "ok",
             "updated_at": "2026-04-29T04:01:00.779920+00:00",
             "updated_at_raw": "2026-04-29T13:01:00.779920+09:00",
-            "age_min": 791,
+            "age_min": 902,
             "fallback": true
           },
           "delta": {
@@ -65,7 +65,7 @@
             "time_status": "ok",
             "updated_at": "2026-04-29T04:01:00+00:00",
             "updated_at_raw": "2026-04-29 13:01 KST",
-            "age_min": 791,
+            "age_min": 902,
             "fallback": true
           },
           "delta": {
@@ -97,14 +97,14 @@
           "status": "ok",
           "metrics": {
             "items": 49,
-            "size_bytes": 895,
-            "hash": "35adea94572aac85a5681670d0bb20f3e1f6b64053f0c1a5e9863b350ea0a176"
+            "size_bytes": 904,
+            "hash": "719edfd1f7ad3175c14d37955470d445bb65745c8635dd536b6a4634c35dbe58"
           },
           "freshness": {
             "time_status": "ok",
-            "updated_at": "2026-04-29T17:00:53.290000+00:00",
-            "updated_at_raw": "2026-04-29T17:00:53.290Z",
-            "age_min": 12,
+            "updated_at": "2026-04-29T19:00:50.919000+00:00",
+            "updated_at_raw": "2026-04-29T19:00:50.919Z",
+            "age_min": 2,
             "fallback": false
           },
           "delta": null,
@@ -125,19 +125,19 @@
           "status": "ok",
           "metrics": {
             "items": 73,
-            "size_bytes": 15846,
-            "hash": "654a1b7ccb8b501b50d76e79df445cf1fa42a24d5674b8be0e7a680a5d617279"
+            "size_bytes": 15798,
+            "hash": "4b89d848848dd0724bc74338d125c9bf366dee21a541dc67a50a5be3a1bbec28"
           },
           "freshness": {
             "time_status": "ok",
-            "updated_at": "2026-04-29T16:44:16+00:00",
-            "updated_at_raw": "2026-04-30 01:44:16",
-            "age_min": 28,
+            "updated_at": "2026-04-29T18:14:21+00:00",
+            "updated_at_raw": "2026-04-30 03:14:21",
+            "age_min": 49,
             "fallback": false
           },
           "delta": {
             "items": 0,
-            "size_bytes": 68,
+            "size_bytes": 20,
             "hash_changed": true,
             "changed_vs_yesterday": true,
             "compared_to": "yesterday"
@@ -168,19 +168,19 @@
           "status": "ok",
           "metrics": {
             "items": 49,
-            "size_bytes": 1103,
-            "hash": "484b05baa38bd0f76d775310338e46aa1b94f4620286f86e252f151cd45c8c56"
+            "size_bytes": 1112,
+            "hash": "ca32753272f9e71ce5cb8b68ba284dd388b3edb7805fe01bed3bb02eb978cdc7"
           },
           "freshness": {
             "time_status": "ok",
-            "updated_at": "2026-04-29T17:00:53.290000+00:00",
-            "updated_at_raw": "2026-04-29T17:00:53.290Z",
-            "age_min": 12,
+            "updated_at": "2026-04-29T19:00:50.919000+00:00",
+            "updated_at_raw": "2026-04-29T19:00:50.919Z",
+            "age_min": 2,
             "fallback": false
           },
           "delta": {
             "items": 0,
-            "size_bytes": -16,
+            "size_bytes": -7,
             "hash_changed": true,
             "changed_vs_yesterday": true,
             "compared_to": "yesterday"
