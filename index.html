@@ -490,13 +490,9 @@ function setVerdict(level) {
 function combinedStatus(src) {
   // pending sources stay pending
   if (src.status === 'pending') return 'pending';
-  const cron = src.cron?.status;
-  // v4: fallback flag 은 informational. status (age 기반) 만으로 badge 결정.
-  // hash 가 직전 poll 과 같아도 임계값 안쪽이면 정상 (자연 변동).
+  // v5: cron 신호는 카드·verdict 에서 제외 (시간 신호가 최종 판정).
+  // status.json 에는 cron 정보 raw 로 유지 (필요 시 재활성화).
   const live = src.status;
-  if (cron === 'down') return 'down';
-  if (cron === 'stale') return 'stale';
-  if (cron === 'ok' && (live === 'down' || live === 'stale')) return 'deploy_pending';
   if (live === 'ok') return 'ok';
   return live || 'unknown';
 }
@@ -564,8 +560,7 @@ function renderCard(srcKey, src, groupKey) {
 
   let signalsHtml = '';
   if (!isPending) {
-    const cron = src.cron;
-    // v4.3: 2-tier 시그널
+    // v5: 2-tier 시그널 (cron 제거)
     //   1차 (시간): freshness.time_status — age vs cadence 임계값
     //   2차 (내용): content.status — items 정상 여부
     const timeLevel = src.freshness?.time_status || src.status;
@@ -573,15 +568,12 @@ function renderCard(srcKey, src, groupKey) {
     const timeTs = src.freshness?.updated_at;
     const content = src.content;
 
-    const cronLine = cron
-      ? `<span class="signal ${statusToClass(cron.status)}">${renderSignal('cron', cron.status, cron.age_min, cron.started_at)}</span>`
-      : '';
     const timeLine = `<span class="signal ${statusToClass(timeLevel)}">${renderSignal('시간', timeLevel, timeAge, timeTs)}</span>`;
     const contentLine = content
       ? `<span class="signal ${statusToClass(content.status)}">${renderContentSignal(content)}</span>`
       : '';
 
-    signalsHtml = `<div class="card-signals">${cronLine}${timeLine}${contentLine}</div>`;
+    signalsHtml = `<div class="card-signals">${timeLine}${contentLine}</div>`;
   } else {
     signalsHtml = `<div class="card-pending-note">${src.data_label || ''}</div>`;
   }
