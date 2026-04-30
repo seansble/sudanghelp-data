@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>sudanghelp.co.kr 링크 지도 — Tidy Tree</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<style>
+* { box-sizing: border-box; }
+html, body { margin:0; padding:0; height:100%; font-family: 'Pretendard', system-ui, -apple-system, sans-serif; background:#0a0a0a; color:#e8e8e8; }
+#wrap { display:grid; grid-template-columns: 360px 1fr; height:100vh; }
+#side { overflow:auto; padding:18px; border-right:1px solid #1f1f1f; background:#0d0d0d; }
+#graph { position:relative; overflow:hidden; }
+h1 { font-size:18px; margin:0 0 4px; color:#10b981; letter-spacing:-.01em; }
+h2 { font-size:12px; color:#10b981; margin:18px 0 8px; letter-spacing:.06em; text-transform:uppercase; font-weight:600; }
+.lead { font-size:12px; color:#9aa0a6; margin-bottom:14px; line-height:1.55; }
+.kpi { display:grid; grid-template-columns: repeat(2, 1fr); gap:6px; margin-bottom:14px; }
+.kpi div { background:#141414; border:1px solid #1f1f1f; border-radius:8px; padding:8px 10px; }
+.kpi b { display:block; font-size:18px; color:#10b981; font-weight:700; }
+.kpi span { font-size:11px; color:#9aa0a6; }
+ul.list { list-style:none; padding:0; margin:0; font-size:12px; }
+ul.list li { padding:4px 6px; border-radius:4px; cursor:pointer; display:flex; justify-content:space-between; gap:8px; line-height:1.4; }
+ul.list li:hover { background:#1a1a1a; }
+ul.list li .nm { color:#e8e8e8; font-weight:500; }
+ul.list li .pth { color:#6b7280; font-family: ui-monospace, SFMono-Regular, monospace; font-size:10px; display:block; }
+ul.list li .v { color:#10b981; font-weight:600; flex-shrink:0; font-variant-numeric: tabular-nums; }
+.legend { display:flex; flex-wrap:wrap; gap:6px; margin: 4px 0 14px; font-size:11px; }
+.legend span { display:inline-flex; align-items:center; gap:4px; padding:2px 6px; background:#141414; border-radius:4px; }
+.legend i { display:inline-block; width:9px; height:9px; border-radius:50%; }
+.legend i.broken { border:1.5px dashed #dc2626; background:transparent !important; }
+#tip { position:absolute; pointer-events:none; background:#0a0a0a; border:1px solid #10b981; padding:8px 10px; font-size:12px; border-radius:6px; max-width:360px; opacity:0; transition:opacity .12s; z-index:50; box-shadow: 0 4px 16px rgba(0,0,0,0.4); }
+#tip code { color:#10b981; word-break:break-all; font-size:11px; }
+#tip .row { color:#9aa0a6; margin-top:4px; }
+#tip .row b { color:#e8e8e8; font-weight:600; }
+#tip .crumb { color:#fbbf24; margin-top:6px; padding-top:6px; border-top:1px dashed #1f1f1f; font-size:11px; line-height:1.5; }
+.controls { position:absolute; top:12px; right:12px; display:flex; gap:6px; z-index:10; }
+.controls button { background:#141414; color:#e8e8e8; border:1px solid #1f1f1f; padding:6px 12px; border-radius:6px; font-size:11px; cursor:pointer; transition: all .15s; }
+.controls button:hover { border-color:#10b981; color:#10b981; }
+.controls button.active { background:#10b981; color:#0a0a0a; border-color:#10b981; }
+.search { width:100%; background:#141414; color:#e8e8e8; border:1px solid #1f1f1f; padding:7px 10px; border-radius:6px; font-size:12px; margin-bottom:10px; }
+.search:focus { outline:none; border-color:#10b981; }
+.section { margin-top:16px; padding-top:14px; border-top:1px solid #1a1a1a; }
+small.warn { color:#f59e0b; font-size:11px; }
+small.muted { color:#9aa0a6; font-size:11px; }
+.hint { position:absolute; bottom:12px; left:12px; font-size:11px; color:#6b7280; background:rgba(10,10,10,0.85); padding:6px 10px; border-radius:6px; border:1px solid #1a1a1a; z-index:10; }
+.hint b { color:#10b981; }
+.broken-tag { display:inline-block; padding:1px 5px; font-size:9px; font-weight:700; color:#dc2626; border:1px solid #dc2626; border-radius:3px; margin-left:4px; vertical-align:middle; }
+
+/* Nav tabs (운영 모니터 ↔ Site Link Map 통일 헤더) */
+.nav-tabs { display:flex; gap:16px; margin-bottom:12px; padding-bottom:10px; border-bottom:1px solid var(--border); font-size:12px; letter-spacing:0.02em; }
+.nav-tabs a { color:var(--text-3); padding:4px 0; border-bottom:1px solid transparent; transition:color 0.15s, border-color 0.15s; }
+.nav-tabs a:hover { color:var(--text-2); }
+.nav-tabs a.active { color:var(--accent); border-bottom-color:var(--accent); font-weight:500; }
+</style>
+</head>
+<body>
+<div id="wrap">
+  <aside id="side">
+    <nav class="nav-tabs">
+      <a href="./">운영 모니터</a>
+      <a href="./link-map.html" class="active">Site Link Map</a>
+    </nav>
+    <h1>링크 지도</h1>
+    <div class="lead">sudanghelp.co.kr · <b style="color:#fbbf24">브레드크럼-구조.md</b> 기준 IA 트리 · cross-link 클릭 시 표시</div>
+    <input id="q" class="search" placeholder="페이지 검색 (예: travel, 환율)" />
+
+    <div class="kpi">
+      <div><b id="k_urls">-</b><span>indexable URL</span></div>
+      <div><b id="k_body">-</b><span>본문 엣지</span></div>
+      <div><b id="k_cross">-</b><span>cross-link</span></div>
+      <div><b id="k_iso">-</b><span>고립 페이지</span></div>
+    </div>
+
+    <div class="legend">
+      <span><i style="background:#10b981"></i>root</span>
+      <span><i style="background:#34d399"></i>1차허브</span>
+      <span><i class="broken"></i>1차허브(404)</span>
+      <span><i style="background:#22d3ee"></i>2차허브</span>
+      <span><i style="background:#f59e0b"></i>위성</span>
+      <span><i style="background:#a78bfa"></i>계산기/leaf</span>
+      <span><i style="background:#f472b6"></i>블로그</span>
+      <span><i style="background:#94a3b8"></i>법적</span>
+    </div>
+    <small class="muted">노드 크기 = 본문 in-degree (인용 강도) · 호버 시 브레드크럼 경로 표시</small>
+
+    <div class="section">
+      <h2>TOP 10 Authority</h2>
+      <ul class="list" id="list_auth"></ul>
+    </div>
+
+    <div class="section">
+      <h2>TOP 10 Hub (발신)</h2>
+      <ul class="list" id="list_hub"></ul>
+    </div>
+
+    <div class="section">
+      <h2>고립 페이지</h2>
+      <small class="warn">본문 인용 없음 (전역 nav 만으로 도달)</small>
+      <ul class="list" id="list_iso" style="margin-top:6px;"></ul>
+    </div>
+
+    <div class="section">
+      <h2>강한 자연 인용 (in≥5)</h2>
+      <ul class="list" id="list_strong"></ul>
+    </div>
+
+    <div class="section">
+      <h2>외부 도메인 인용 TOP</h2>
+      <p style="color:#6b7280;font-size:11px;margin:0 0 6px;">수당헬프 → 외부 (out-bound)</p>
+      <ul class="list" id="list_ext"></ul>
+    </div>
+
+    <div class="section">
+      <h2>외부 백링크 — 도메인 <span id="k_inbound_total" style="color:#10b981;font-weight:400;font-size:12px"></span></h2>
+      <p style="color:#6b7280;font-size:11px;margin:0 0 6px;">외부 → 수당헬프 (in-bound) · GSC</p>
+      <ul class="list" id="list_inbound"></ul>
+    </div>
+
+    <div class="section">
+      <h2>외부 백링크 받는 페이지 TOP</h2>
+      <p style="color:#6b7280;font-size:11px;margin:0 0 6px;">노란 후광 = 외부 인용 받는 페이지</p>
+      <ul class="list" id="list_inbound_pages"></ul>
+    </div>
+
+    <div class="section">
+      <h2>🔥 Google PR TOP 10</h2>
+      <p style="color:#6b7280;font-size:11px;margin:0 0 6px;">PageRank 시뮬레이션 (정규화 0~100, 상대순위)</p>
+      <ul class="list" id="list_pr"></ul>
+    </div>
+
+    <div class="section">
+      <h2>🤖 LEO Readiness TOP 10</h2>
+      <p style="color:#6b7280;font-size:11px;margin:0 0 6px;">LLM 인용 가능성 (Dataset·HowTo·FAQ·freshness)</p>
+      <ul class="list" id="list_leo"></ul>
+    </div>
+
+    <div class="section" style="background:#0f1a14;border:1px solid #1a3027;padding:10px;border-radius:4px;">
+      <h2 style="color:#10b981;margin-bottom:6px;">🔍 Naver 측면 노트</h2>
+      <p style="color:#9aa0a6;font-size:11px;line-height:1.5;margin:0;">
+        Naver 는 link map 영향 8-12% 미만.<br>
+        C-Rank·D.I.A+·P-Rank 모두 <b>콘텐츠 자체</b> 우선.<br>
+        한국 SEO grind: ① Yeti 색인 검증 ② naver.com·tistory 백링크 직접 늘리기 ③ HowTo schema 확장
+      </p>
+    </div>
+  </aside>
+
+  <div id="graph">
+    <div class="controls">
+      <button id="btn_collapse">전체 접기</button>
+      <button id="btn_expand">전체 펼치기</button>
+      <button id="btn_cross" class="">Cross-link 토글</button>
+      <button id="btn_reset">초기 위치</button>
+    </div>
+    <div class="hint">노드 <b>클릭</b> = cross-link 표시 · <b>더블클릭</b> = 자식 접기/펴기 · 휠 = 줌 · 드래그 = 이동</div>
+    <div id="tip"></div>
+    <svg id="svg" width="100%" height="100%"></svg>
+  </div>
+</div>
+
+<script>
+const DATA = {"tree": {"id": "/", "name": "홈", "group": "root", "in_body": 74, "out_body": 21, "in_global": 77, "out_global": 41, "depth_bfs": 0, "authority": 97.1, "breadcrumb": "홈", "inbound_links": 4, "inbound_sites": 3, "pagerank": 100.0, "leo_score": 0, "children": [{"id": "/about/", "name": "소개", "group": "legal", "in_body": 12, "out_body": 0, "in_global": 77, "out_global": 41, "depth_bfs": 1, "authority": 35.1, "breadcrumb": "홈 › 소개", "inbound_links": 0, "inbound_sites": 0, "pagerank": 12.3, "leo_score": 0}, {"id": "/contact/", "name": "문의", "group": "legal", "in_body": 12, "out_body": 1, "in_global": 77, "out_global": 41, "depth_bfs": 1, "authority": 35.1, "breadcrumb": "홈 › 문의", "inbound_links": 0, "inbound_sites": 0, "pagerank": 12.4, "leo_score": 0}, {"id": "/privacy/", "name": "개인정보", "group": "legal", "in_body": 12, "out_body": 1, "in_global": 77, "out_global": 41, "depth_bfs": 1, "authority": 35.1, "breadcrumb": "홈 › 개인정보", "inbound_links": 0, "inbound_sites": 0, "pagerank": 12.4, "leo_score": 0}, {"id": "/terms/", "name": "약관", "group": "legal", "in_body": 12, "out_body": 1, "in_global": 77, "out_global": 41, "depth_bfs": 1, "authority": 35.1, "breadcrumb": "홈 › 약관", "inbound_links": 0, "inbound_sites": 0, "pagerank": 12.4, "leo_score": 0}, {"id": "/asset/", "name": "자산·투자", "group": "hub1", "in_body": 12, "out_body": 7, "in_global": 77, "out_global": 41, "depth_bfs": 1, "authority": 35.1, "breadcrumb": "홈 › 자산·투자", "inbound_links": 0, "inbound_sites": 0, "pagerank": 36.6, "leo_score": 30, "children": [{"id": "/coinmore/", "name": "코인 물타기 계산기", "group": "calc", "in_body": 16, "out_body": 2, "in_global": 77, "out_global": 41, "depth_bfs": 1, "authority": 39.1, "breadcrumb": "홈 › 자산·투자 › 코인 물타기 계산기", "inbound_links": 15, "inbound_sites": 2, "pagerank": 37.7, "leo_score": 0}, {"id": "/compoundcalc/", "name": "복리 계산기", "group": "hub2", "in_body": 29, "out_body": 11, "in_global": 77, "out_global": 41, "depth_bfs": 1, "authority": 52.1, "breadcrumb": "홈 › 자산·투자 › 복리 계산기", "inbound_links": 0, "inbound_sites": 0, "pagerank": 41.9, "leo_score": 30, "children": [{"id": "/compoundcalc/goal100m/", "name": "1억 모으기", "group": "calc", "in_body": 11, "out_body": 7, "in_global": 77, "out_global": 41, "depth_bfs": 1, "authority": 34.1, "breadcrumb": "홈 › 자산·투자 › 복리 계산기 › 1억 모으기", "inbound_links": 0, "inbound_sites": 0, "pagerank": 27.3, "leo_score": 30}, {"id": "/compoundcalc/lump-sum/", "name": "거치식 복리", "group": "calc", "in_body": 9, "out_body": 7, "in_global": 77, "out_global": 41, "depth_bfs": 1, "authority": 32.1, "breadcrumb": "홈 › 자산·투자 › 복리 계산기 › 거치식 복리", "inbound_links": 0, "inbound_sites": 0, "pagerank": 24.2, "leo_score": 45}, {"id": "/compoundcalc/lumpvsregular/", "name": "거치 vs 적립", "group": "calc", "in_body": 8, "out_body": 7, "in_global": 77, "out_global": 41, "depth_bfs": 1, "authority": 31.1, "breadcrumb": "홈 › 자산·투자 › 복리 계산기 › 거치 vs 적립", "inbound_links": 0, "inbound_sites": 0, "pagerank": 23.8, "leo_score": 30}, {"id": "/compoundcalc/rates/", "name": "실시간 금리", "group": "satellite", "in_body": 9, "out_body": 3, "in_global": 77, "out_global": 41, "depth_bfs": 1, "authority": 32.1, "breadcrumb": "홈 › 자산·투자 › 복리 계산기 › 실시간 금리", "inbound_links": 0, "inbound_sites": 0, "pagerank": 24.9, "leo_score": 85}, {"id": "/compoundcalc/regular-saving/", "name": "적립식 복리", "group": "calc", "in_body": 12, "out_body": 7, "in_global": 77, "out_global": 41, "depth_bfs": 1, "authority": 35.1, "breadcrumb": "홈 › 자산·투자 › 복리 계산기 › 적립식 복리", "inbound_links": 9, "inbound_sites": 1, "pagerank": 37.2, "leo_score": 45}]}, {"id": "/tax-account/", "name": "절세계좌", "group": "hub2", "in_body": 5, "out_body": 6, "in_global": 77, "out_global": 41, "depth_bfs": 1, "authority": 28.1, "breadcrumb": "홈 › 자산·투자 › 절세계좌", "inbound_links": 0, "inbound_sites": 0, "pagerank": 18.7, "leo_score": 30, "children": [{"id": "/tax-account/compare/", "name": "절세계좌 비교", "group": "calc", "in_body": 5, "out_body": 7, "in_global": 77, "out_global": 41, "depth_bfs": 1, "authority": 28.1, "breadcrumb": "홈 › 자산·투자 › 절세계좌 › 절세계좌 비교", "inbound_links": 0, "inbound_sites": 0, "pagerank": 18.9, "leo_score": 55}, {"id": "/tax-account/exit/", "name": "중도해지", "group": "calc", "in_body": 4, "out_body": 6, "in_global": 77, "out_global": 41, "depth_bfs": 1, "authority": 27.1, "breadcrumb": "홈 › 자산·투자 › 절세계좌 › 중도해지", "inbound_links": 0, "inbound_sites": 0, "pagerank": 16.2, "leo_score": 40}, {"id": "/tax-account/limit/", "name": "한도 계산", "group": "calc", "in_body": 4, "out_body": 6, "in_global": 77, "out_global": 41, "depth_bfs": 1, "authority": 27.1, "breadcrumb": "홈 › 자산·투자 › 절세계좌 › 한도 계산", "inbound_links": 0, "inbound_sites": 0, "pagerank": 16.2, "leo_score": 40}, {"id": "/tax-account/year-end/", "name": "연말정산", "group": "calc", "in_body": 4, "out_body": 6, "in_global": 77, "out_global": 41, "depth_bfs": 1, "authority": 27.1, "breadcrumb": "홈 › 자산·투자 › 절세계좌 › 연말정산", "inbound_links": 0, "inbound_sites": 0, "pagerank": 16.2, "leo_score": 45}]}]}, {"id": "/blog/", "name": "블로그", "group": "hub1", "in_body": 21, "out_body": 33, "in_global": 77, "out_global": 41, "depth_bfs": 1, "authority": 44.1, "breadcrumb": "홈 › 블로그", "inbound_links": 0, "inbound_sites": 0, "pagerank": 18.9, "leo_score": 10, "children": [{"id": "/blog/additionaltax/vat-1/", "name": "vat-1", "group": "blog", "in_body": 6, "out_body": 10, "in_global": 0, "out_global": 42, "depth_bfs": 2, "authority": 6.0, "breadcrumb": "홈 › 블로그 › vat-1", "inbound_links": 0, "inbound_sites": 0, "pagerank": 3.7, "leo_score": 40}, {"id": "/blog/additionaltax/vat-2/", "name": "vat-2", "group": "blog", "in_body": 6, "out_body": 10, "in_global": 0, "out_global": 42, "depth_bfs": 2, "authority": 6.0, "breadcrumb": "홈 › 블로그 › vat-2", "inbound_links": 0, "inbound_sites": 0, "pagerank": 3.7, "leo_score": 40}, {"id": "/blog/additionaltax/vat-3/", "name": "vat-3", "group": "blog", "in_body": 6, "out_body": 10, "in_global": 0, "out_global": 42, "depth_bfs": 2, "authority": 6.0, "breadcrumb": "홈 › 블로그 › vat-3", "inbound_links": 1, "inbound_sites": 1, "pagerank": 4.6, "leo_score": 25}, {"id": "/blog/additionaltax/vat-4/", "name": "vat-4", "group": "blog", "in_body": 6, "out_body": 10, "in_global": 0, "out_global": 42, "depth_bfs": 2, "authority": 6.0, "breadcrumb": "홈 › 블로그 › vat-4", "inbound_links": 0, "inbound_sites": 0, "pagerank": 3.7, "leo_score": 25}, {"id": "/blog/additionaltax/vat-5/", "name": "vat-5", "group": "blog", "in_body": 6, "out_body": 9, "in_global": 0, "out_global": 42, "depth_bfs": 2, "authority": 6.0, "breadcrumb": "홈 › 블로그 › vat-5", "inbound_links": 0, "inbound_sites": 0, "pagerank": 3.6, "leo_score": 25}, {"id": "/blog/atm-guide-2026/", "name": "atm-guide-2026", "group": "blog", "in_body": 6, "out_body": 10, "in_global": 0, "out_global": 42, "depth_bfs": 2, "authority": 6.0, "breadcrumb": "홈 › 블로그 › atm-guide-2026", "inbound_links": 0, "inbound_sites": 0, "pagerank": 2.6, "leo_score": 45}, {"id": "/blog/cma-comparison-2026/", "name": "cma-comparison-2026", "group": "blog", "in_body": 4, "out_body": 10, "in_global": 0, "out_global": 42, "depth_bfs": 2, "authority": 4.0, "breadcrumb": "홈 › 블로그 › cma-comparison-2026", "inbound_links": 0, "inbound_sites": 0, "pagerank": 4.4, "leo_score": 30}, {"id": "/blog/dcc-block-2026/", "name": "dcc-block-2026", "group": "blog", "in_body": 6, "out_body": 10, "in_global": 0, "out_global": 42, "depth_bfs": 2, "authority": 6.0, "breadcrumb": "홈 › 블로그 › dcc-block-2026", "inbound_links": 0, "inbound_sites": 0, "pagerank": 2.6, "leo_score": 45}, {"id": "/blog/exchange-compare-2026/", "name": "exchange-compare-2026", "group": "blog", "in_body": 6, "out_body": 10, "in_global": 0, "out_global": 42, "depth_bfs": 2, "authority": 6.0, "breadcrumb": "홈 › 블로그 › exchange-compare-2026", "inbound_links": 0, "inbound_sites": 0, "pagerank": 2.6, "leo_score": 30}, {"id": "/blog/jeonse-insurance-2026/", "name": "jeonse-insurance-2026", "group": "blog", "in_body": 6, "out_body": 9, "in_global": 0, "out_global": 42, "depth_bfs": 2, "authority": 6.0, "breadcrumb": "홈 › 블로그 › jeonse-insurance-2026", "inbound_links": 0, "inbound_sites": 0, "pagerank": 4.2, "leo_score": 45}, {"id": "/blog/jeonse-loan-2026/", "name": "jeonse-loan-2026", "group": "blog", "in_body": 6, "out_body": 9, "in_global": 0, "out_global": 42, "depth_bfs": 2, "authority": 6.0, "breadcrumb": "홈 › 블로그 › jeonse-loan-2026", "inbound_links": 0, "inbound_sites": 0, "pagerank": 4.2, "leo_score": 30}, {"id": "/blog/military-salary-2025/", "name": "military-salary-2025", "group": "blog", "in_body": 1, "out_body": 7, "in_global": 0, "out_global": 42, "depth_bfs": 2, "authority": 1.0, "breadcrumb": "홈 › 블로그 › military-salary-2025", "inbound_links": 39, "inbound_sites": 1, "pagerank": 21.2, "leo_score": 10}, {"id": "/blog/military-savings/", "name": "military-savings", "group": "blog", "in_body": 1, "out_body": 6, "in_global": 0, "out_global": 42, "depth_bfs": 2, "authority": 1.0, "breadcrumb": "홈 › 블로그 › military-savings", "inbound_links": 0, "inbound_sites": 0, "pagerank": 1.4, "leo_score": 10}, {"id": "/blog/newlywed-baby-loan-2026/", "name": "newlywed-baby-loan-2026", "group": "blog", "in_body": 6, "out_body": 9, "in_global": 0, "out_global": 42, "depth_bfs": 2, "authority": 6.0, "breadcrumb": "홈 › 블로그 › newlywed-baby-loan-2026", "inbound_links": 0, "inbound_sites": 0, "pagerank": 4.2, "leo_score": 45}, {"id": "/blog/payment-strategy-2026/", "name": "payment-strategy-2026", "group": "blog", "in_body": 6, "out_body": 10, "in_global": 0, "out_global": 42, "depth_bfs": 2, "authority": 6.0, "breadcrumb": "홈 › 블로그 › payment-strategy-2026", "inbound_links": 0, "inbound_sites": 0, "pagerank": 2.6, "leo_score": 45}, {"id": "/blog/policy-mortgage-2025/", "name": "policy-mortgage-2025", "group": "blog", "in_body": 6, "out_body": 9, "in_global": 0, "out_global": 42, "depth_bfs": 2, "authority": 6.0, "breadcrumb": "홈 › 블로그 › policy-mortgage-2025", "inbound_links": 1, "inbound_sites": 1, "pagerank": 5.2, "leo_score": 30}, {"id": "/blog/re-exchange-2026/", "name": "re-exchange-2026", "group": "blog", "in_body": 6, "out_body": 10, "in_global": 0, "out_global": 42, "depth_bfs": 2, "authority": 6.0, "breadcrumb": "홈 › 블로그 › re-exchange-2026", "inbound_links": 0, "inbound_sites": 0, "pagerank": 2.6, "leo_score": 30}, {"id": "/blog/savings-deposit-2026/", "name": "savings-deposit-2026", "group": "blog", "in_body": 5, "out_body": 10, "in_global": 0, "out_global": 42, "depth_bfs": 2, "authority": 5.0, "breadcrumb": "홈 › 블로그 › savings-deposit-2026", "inbound_links": 0, "inbound_sites": 0, "pagerank": 5.8, "leo_score": 30}, {"id": "/blog/savings-installment-2026/", "name": "savings-installment-2026", "group": "blog", "in_body": 4, "out_body": 10, "in_global": 0, "out_global": 42, "depth_bfs": 2, "authority": 4.0, "breadcrumb": "홈 › 블로그 › savings-installment-2026", "inbound_links": 0, "inbound_sites": 0, "pagerank": 4.4, "leo_score": 30}, {"id": "/blog/step-loan-2025/", "name": "step-loan-2025", "group": "blog", "in_body": 6, "out_body": 9, "in_global": 0, "out_global": 42, "depth_bfs": 2, "authority": 6.0, "breadcrumb": "홈 › 블로그 › step-loan-2025", "inbound_links": 0, "inbound_sites": 0, "pagerank": 4.2, "leo_score": 30}]}, {"id": "/expense/", "name": "비용·지출", "group": "hub1", "in_body": 22, "out_body": 8, "in_global": 77, "out_global": 41, "depth_bfs": 1, "authority": 45.1, "breadcrumb": "홈 › 비용·지출", "inbound_links": 0, "inbound_sites": 0, "pagerank": 29.5, "leo_score": 25, "children": [{"id": "/electricity/", "name": "전기요금 계산기", "group": "calc", "in_body": 14, "out_body": 5, "in_global": 77, "out_global": 41, "depth_bfs": 1, "authority": 37.1, "breadcrumb": "홈 › 비용·지출 › 전기요금 계산기", "inbound_links": 13, "inbound_sites": 1, "pagerank": 30.9, "leo_score": 35}, {"id": "/loan/", "name": "대출 계산기", "group": "hub2", "in_body": 25, "out_body": 10, "in_global": 77, "out_global": 41, "depth_bfs": 1, "authority": 48.1, "breadcrumb": "홈 › 비용·지출 › 대출 계산기", "inbound_links": 0, "inbound_sites": 0, "pagerank": 27.1, "leo_score": 10, "children": [{"id": "/creditcalc/emergency-loan/", "name": "비상금대출 계산기", "group": "calc", "in_body": 6, "out_body": 7, "in_global": 77, "out_global": 41, "depth_bfs": 1, "authority": 29.1, "breadcrumb": "홈 › 비용·지출 › 대출 계산기 › 비상금대출 계산기", "inbound_links": 1, "inbound_sites": 1, "pagerank": 24.5, "leo_score": 35}, {"id": "/creditcalc/prepay-calc/", "name": "중도상환수수료 계산기", "group": "calc", "in_body": 10, "out_body": 7, "in_global": 77, "out_global": 41, "depth_bfs": 1, "authority": 33.1, "breadcrumb": "홈 › 비용·지출 › 대출 계산기 › 중도상환수수료 계산기", "inbound_links": 0, "inbound_sites": 0, "pagerank": 21.3, "leo_score": 35}, {"id": "/creditcalc/step-loan/", "name": "체증식 대출 계산기", "group": "calc", "in_body": 11, "out_body": 5, "in_global": 77, "out_global": 41, "depth_bfs": 1, "authority": 34.1, "breadcrumb": "홈 › 비용·지출 › 대출 계산기 › 체증식 대출 계산기", "inbound_links": 0, "inbound_sites": 0, "pagerank": 22.8, "leo_score": 35}]}, {"id": "/tax/", "name": "세금 계산기", "group": "hub2", "in_body": 21, "out_body": 10, "in_global": 77, "out_global": 41, "depth_bfs": 1, "authority": 44.1, "breadcrumb": "홈 › 비용·지출 › 세금 계산기", "inbound_links": 0, "inbound_sites": 0, "pagerank": 20.9, "leo_score": 25, "children": [{"id": "/additionaltax/batch-vat-calc/", "name": "부가세 계산기", "group": "calc", "in_body": 8, "out_body": 7, "in_global": 77, "out_global": 41, "depth_bfs": 1, "authority": 31.1, "breadcrumb": "홈 › 비용·지출 › 세금 계산기 › 부가세 계산기", "inbound_links": 1, "inbound_sites": 1, "pagerank": 20.6, "leo_score": 10}, {"id": "/additionaltax/simple-tax-check/", "name": "간이과세자 확인", "group": "calc", "in_body": 10, "out_body": 7, "in_global": 77, "out_global": 41, "depth_bfs": 1, "authority": 33.1, "breadcrumb": "홈 › 비용·지출 › 세금 계산기 › 간이과세자 확인", "inbound_links": 0, "inbound_sites": 0, "pagerank": 20.3, "leo_score": 25}, {"id": "/additionaltax/supply-calc/", "name": "공급가액 계산기", "group": "calc", "in_body": 14, "out_body": 7, "in_global": 77, "out_global": 41, "depth_bfs": 1, "authority": 37.1, "breadcrumb": "홈 › 비용·지출 › 세금 계산기 › 공급가액 계산기", "inbound_links": 1, "inbound_sites": 1, "pagerank": 26.9, "leo_score": 20}]}, {"id": "/travel/", "name": "여행 비용 플래너", "group": "hub2", "in_body": 18, "out_body": 20, "in_global": 77, "out_global": 41, "depth_bfs": 1, "authority": 41.1, "breadcrumb": "홈 › 비용·지출 › 여행 비용 플래너", "inbound_links": 0, "inbound_sites": 0, "pagerank": 15.4, "leo_score": 10, "children": [{"id": "/travel/exchange-analysis/", "name": "환전 분석기", "group": "calc", "in_body": 19, "out_body": 23, "in_global": 77, "out_global": 41, "depth_bfs": 1, "authority": 42.1, "breadcrumb": "홈 › 비용·지출 › 여행 비용 플래너 › 환전 분석기", "inbound_links": 0, "inbound_sites": 0, "pagerank": 17.1, "leo_score": 25}, {"id": "/travel/exchange-calculator/", "name": "환율 계산기 (USD)", "group": "calc", "in_body": 23, "out_body": 30, "in_global": 77, "out_global": 41, "depth_bfs": 1, "authority": 46.1, "breadcrumb": "홈 › 비용·지출 › 여행 비용 플래너 › 환율 계산기 (USD)", "inbound_links": 3, "inbound_sites": 2, "pagerank": 29.2, "leo_score": 60, "children": [{"id": "/travel/exchange-calculator/cambodia/", "name": "캄보디아", "group": "calc", "in_body": 11, "out_body": 30, "in_global": 0, "out_global": 42, "depth_bfs": 2, "authority": 11.0, "breadcrumb": "홈 › 비용·지출 › 여행 비용 플래너 › 환율 계산기 (USD) › 캄보디아", "inbound_links": 0, "inbound_sites": 0, "pagerank": 2.9, "leo_score": 25}, {"id": "/travel/exchange-calculator/hongkong/", "name": "홍콩", "group": "calc", "in_body": 11, "out_body": 30, "in_global": 0, "out_global": 42, "depth_bfs": 2, "authority": 11.0, "breadcrumb": "홈 › 비용·지출 › 여행 비용 플래너 › 환율 계산기 (USD) › 홍콩", "inbound_links": 0, "inbound_sites": 0, "pagerank": 2.9, "leo_score": 25}, {"id": "/travel/exchange-calculator/indonesia/", "name": "인도네시아", "group": "calc", "in_body": 11, "out_body": 30, "in_global": 0, "out_global": 42, "depth_bfs": 2, "authority": 11.0, "breadcrumb": "홈 › 비용·지출 › 여행 비용 플래너 › 환율 계산기 (USD) › 인도네시아", "inbound_links": 0, "inbound_sites": 0, "pagerank": 2.9, "leo_score": 25}, {"id": "/travel/exchange-calculator/laos/", "name": "라오스", "group": "calc", "in_body": 11, "out_body": 30, "in_global": 0, "out_global": 42, "depth_bfs": 2, "authority": 11.0, "breadcrumb": "홈 › 비용·지출 › 여행 비용 플래너 › 환율 계산기 (USD) › 라오스", "inbound_links": 0, "inbound_sites": 0, "pagerank": 2.9, "leo_score": 25}, {"id": "/travel/exchange-calculator/malaysia/", "name": "말레이시아", "group": "calc", "in_body": 11, "out_body": 30, "in_global": 0, "out_global": 42, "depth_bfs": 2, "authority": 11.0, "breadcrumb": "홈 › 비용·지출 › 여행 비용 플래너 › 환율 계산기 (USD) › 말레이시아", "inbound_links": 0, "inbound_sites": 0, "pagerank": 2.9, "leo_score": 25}, {"id": "/travel/exchange-calculator/myanmar/", "name": "미얀마", "group": "calc", "in_body": 11, "out_body": 30, "in_global": 0, "out_global": 42, "depth_bfs": 2, "authority": 11.0, "breadcrumb": "홈 › 비용·지출 › 여행 비용 플래너 › 환율 계산기 (USD) › 미얀마", "inbound_links": 0, "inbound_sites": 0, "pagerank": 2.9, "leo_score": 25}, {"id": "/travel/exchange-calculator/philippines/", "name": "필리핀", "group": "calc", "in_body": 11, "out_body": 30, "in_global": 0, "out_global": 42, "depth_bfs": 2, "authority": 11.0, "breadcrumb": "홈 › 비용·지출 › 여행 비용 플래너 › 환율 계산기 (USD) › 필리핀", "inbound_links": 0, "inbound_sites": 0, "pagerank": 2.9, "leo_score": 25}, {"id": "/travel/exchange-calculator/taiwan/", "name": "대만", "group": "calc", "in_body": 11, "out_body": 30, "in_global": 0, "out_global": 42, "depth_bfs": 2, "authority": 11.0, "breadcrumb": "홈 › 비용·지출 › 여행 비용 플래너 › 환율 계산기 (USD) › 대만", "inbound_links": 0, "inbound_sites": 0, "pagerank": 2.9, "leo_score": 25}, {"id": "/travel/exchange-calculator/thailand/", "name": "태국", "group": "calc", "in_body": 11, "out_body": 30, "in_global": 0, "out_global": 42, "depth_bfs": 2, "authority": 11.0, "breadcrumb": "홈 › 비용·지출 › 여행 비용 플래너 › 환율 계산기 (USD) › 태국", "inbound_links": 0, "inbound_sites": 0, "pagerank": 2.9, "leo_score": 25}, {"id": "/travel/exchange-calculator/vietnam/", "name": "베트남", "group": "calc", "in_body": 11, "out_body": 30, "in_global": 0, "out_global": 42, "depth_bfs": 2, "authority": 11.0, "breadcrumb": "홈 › 비용·지출 › 여행 비용 플래너 › 환율 계산기 (USD) › 베트남", "inbound_links": 0, "inbound_sites": 0, "pagerank": 2.9, "leo_score": 25}]}, {"id": "/travel/expenses/", "name": "여행 가계부", "group": "calc", "in_body": 21, "out_body": 0, "in_global": 77, "out_global": 41, "depth_bfs": 1, "authority": 44.1, "breadcrumb": "홈 › 비용·지출 › 여행 비용 플래너 › 여행 가계부", "inbound_links": 0, "inbound_sites": 0, "pagerank": 17.5, "leo_score": 10, "children": [{"id": "/travel/expenses/ticket/", "name": "여행 지출 공유 (티켓)", "group": "calc", "in_body": 0, "out_body": 1, "in_global": 0, "out_global": 42, "depth_bfs": -1, "authority": 0.0, "breadcrumb": "홈 › 비용·지출 › 여행 비용 플래너 › 여행 가계부 › 여행 지출 공유 (티켓)", "inbound_links": 0, "inbound_sites": 0, "pagerank": 1.0, "leo_score": 0}]}]}]}, {"id": "/income/", "name": "소득·보장", "group": "hub1", "in_body": 12, "out_body": 7, "in_global": 77, "out_global": 41, "depth_bfs": 1, "authority": 35.1, "breadcrumb": "홈 › 소득·보장", "inbound_links": 0, "inbound_sites": 0, "pagerank": 29.8, "leo_score": 30, "children": [{"id": "/childcare/", "name": "출산·육아", "group": "hub2", "in_body": 5, "out_body": 6, "in_global": 77, "out_global": 41, "depth_bfs": 1, "authority": 28.1, "breadcrumb": "홈 › 소득·보장 › 출산·육아", "inbound_links": 0, "inbound_sites": 0, "pagerank": 16.2, "leo_score": 25, "children": [{"id": "/care-allowance/", "name": "양육수당 가이드", "group": "calc", "in_body": 4, "out_body": 6, "in_global": 0, "out_global": 42, "depth_bfs": 2, "authority": 4.0, "breadcrumb": "홈 › 소득·보장 › 출산·육아 › 양육수당 가이드", "inbound_links": 0, "inbound_sites": 0, "pagerank": 5.4, "leo_score": 45}, {"id": "/child-allowance/", "name": "아동수당 가이드", "group": "calc", "in_body": 4, "out_body": 6, "in_global": 0, "out_global": 42, "depth_bfs": 2, "authority": 4.0, "breadcrumb": "홈 › 소득·보장 › 출산·육아 › 아동수당 가이드", "inbound_links": 0, "inbound_sites": 0, "pagerank": 5.4, "leo_score": 45}, {"id": "/familycare/", "name": "가족돌봄수당", "group": "calc", "in_body": 4, "out_body": 6, "in_global": 0, "out_global": 42, "depth_bfs": 2, "authority": 4.0, "breadcrumb": "홈 › 소득·보장 › 출산·육아 › 가족돌봄수당", "inbound_links": 2, "inbound_sites": 1, "pagerank": 7.3, "leo_score": 45}, {"id": "/parents/", "name": "부모급여 계산기", "group": "calc", "in_body": 19, "out_body": 6, "in_global": 77, "out_global": 41, "depth_bfs": 1, "authority": 42.1, "breadcrumb": "홈 › 소득·보장 › 출산·육아 › 부모급여 계산기", "inbound_links": 1, "inbound_sites": 1, "pagerank": 23.6, "leo_score": 55}, {"id": "/youth/", "name": "청년수당", "group": "calc", "in_body": 13, "out_body": 1, "in_global": 0, "out_global": 42, "depth_bfs": 1, "authority": 13.0, "breadcrumb": "홈 › 소득·보장 › 출산·육아 › 청년수당", "inbound_links": 0, "inbound_sites": 0, "pagerank": 6.4, "leo_score": 0}]}, {"id": "/military/", "name": "군인", "group": "hub2", "in_body": 4, "out_body": 5, "in_global": 77, "out_global": 41, "depth_bfs": 1, "authority": 27.1, "breadcrumb": "홈 › 소득·보장 › 군인", "inbound_links": 0, "inbound_sites": 0, "pagerank": 19.3, "leo_score": 25, "children": [{"id": "/military/salary/", "name": "군인월급 계산기", "group": "calc", "in_body": 19, "out_body": 9, "in_global": 77, "out_global": 41, "depth_bfs": 1, "authority": 42.1, "breadcrumb": "홈 › 소득·보장 › 군인 › 군인월급 계산기", "inbound_links": 1, "inbound_sites": 1, "pagerank": 25.8, "leo_score": 40}, {"id": "/military/savings/", "name": "군적금 계산기", "group": "calc", "in_body": 20, "out_body": 7, "in_global": 77, "out_global": 41, "depth_bfs": 1, "authority": 43.1, "breadcrumb": "홈 › 소득·보장 › 군인 › 군적금 계산기", "inbound_links": 8, "inbound_sites": 1, "pagerank": 34.1, "leo_score": 40}, {"id": "/military/score/", "name": "공군 점수 계산기", "group": "calc", "in_body": 18, "out_body": 5, "in_global": 77, "out_global": 41, "depth_bfs": 1, "authority": 41.1, "breadcrumb": "홈 › 소득·보장 › 군인 › 공군 점수 계산기", "inbound_links": 2, "inbound_sites": 1, "pagerank": 25.6, "leo_score": 40}]}, {"id": "/work-income/", "name": "고용·소득", "group": "hub2", "in_body": 3, "out_body": 4, "in_global": 77, "out_global": 41, "depth_bfs": 1, "authority": 26.1, "breadcrumb": "홈 › 소득·보장 › 고용·소득", "inbound_links": 0, "inbound_sites": 0, "pagerank": 17.0, "leo_score": 25, "children": [{"id": "/unemployment/", "name": "실업급여 계산기", "group": "calc", "in_body": 18, "out_body": 6, "in_global": 77, "out_global": 41, "depth_bfs": 1, "authority": 41.1, "breadcrumb": "홈 › 소득·보장 › 고용·소득 › 실업급여 계산기", "inbound_links": 16, "inbound_sites": 2, "pagerank": 41.3, "leo_score": 40}, {"id": "/unemployment/guide/", "name": "실업급여 가이드", "group": "calc", "in_body": 2, "out_body": 6, "in_global": 0, "out_global": 42, "depth_bfs": 2, "authority": 2.0, "breadcrumb": "홈 › 소득·보장 › 고용·소득 › 실업급여 가이드", "inbound_links": 4, "inbound_sites": 1, "pagerank": 10.3, "leo_score": 45}]}]}]}, "cross_links": [{"source": "/", "target": "/youth/"}, {"source": "/", "target": "/military/savings/"}, {"source": "/", "target": "/creditcalc/step-loan/"}, {"source": "/", "target": "/compoundcalc/regular-saving/"}, {"source": "/", "target": "/military/salary/"}, {"source": "/", "target": "/electricity/"}, {"source": "/", "target": "/compoundcalc/lumpvsregular/"}, {"source": "/", "target": "/compoundcalc/lump-sum/"}, {"source": "/", "target": "/additionaltax/simple-tax-check/"}, {"source": "/", "target": "/creditcalc/emergency-loan/"}, {"source": "/", "target": "/travel/exchange-calculator/"}, {"source": "/", "target": "/additionaltax/supply-calc/"}, {"source": "/", "target": "/additionaltax/batch-vat-calc/"}, {"source": "/", "target": "/military/score/"}, {"source": "/", "target": "/compoundcalc/goal100m/"}, {"source": "/", "target": "/travel/expenses/"}, {"source": "/", "target": "/creditcalc/prepay-calc/"}, {"source": "/", "target": "/travel/exchange-analysis/"}, {"source": "/", "target": "/coinmore/"}, {"source": "/", "target": "/parents/"}, {"source": "/", "target": "/unemployment/"}, {"source": "/additionaltax/batch-vat-calc/", "target": "/additionaltax/simple-tax-check/"}, {"source": "/additionaltax/batch-vat-calc/", "target": "/compoundcalc/"}, {"source": "/additionaltax/batch-vat-calc/", "target": "/"}, {"source": "/additionaltax/batch-vat-calc/", "target": "/loan/"}, {"source": "/additionaltax/batch-vat-calc/", "target": "/additionaltax/supply-calc/"}, {"source": "/additionaltax/batch-vat-calc/", "target": "/expense/"}, {"source": "/additionaltax/simple-tax-check/", "target": "/compoundcalc/"}, {"source": "/additionaltax/simple-tax-check/", "target": "/"}, {"source": "/additionaltax/simple-tax-check/", "target": "/loan/"}, {"source": "/additionaltax/simple-tax-check/", "target": "/additionaltax/supply-calc/"}, {"source": "/additionaltax/simple-tax-check/", "target": "/additionaltax/batch-vat-calc/"}, {"source": "/additionaltax/simple-tax-check/", "target": "/expense/"}, {"source": "/additionaltax/supply-calc/", "target": "/additionaltax/simple-tax-check/"}, {"source": "/additionaltax/supply-calc/", "target": "/compoundcalc/"}, {"source": "/additionaltax/supply-calc/", "target": "/"}, {"source": "/additionaltax/supply-calc/", "target": "/loan/"}, {"source": "/additionaltax/supply-calc/", "target": "/additionaltax/batch-vat-calc/"}, {"source": "/additionaltax/supply-calc/", "target": "/expense/"}, {"source": "/asset/", "target": "/compoundcalc/rates/"}, {"source": "/asset/", "target": "/compoundcalc/regular-saving/"}, {"source": "/asset/", "target": "/tax-account/compare/"}, {"source": "/blog/", "target": "/military/savings/"}, {"source": "/blog/", "target": "/creditcalc/step-loan/"}, {"source": "/blog/", "target": "/compoundcalc/regular-saving/"}, {"source": "/blog/", "target": "/military/salary/"}, {"source": "/blog/", "target": "/compoundcalc/lump-sum/"}, {"source": "/blog/", "target": "/additionaltax/simple-tax-check/"}, {"source": "/blog/", "target": "/travel/exchange-calculator/"}, {"source": "/blog/", "target": "/additionaltax/supply-calc/"}, {"source": "/blog/", "target": "/creditcalc/prepay-calc/"}, {"source": "/blog/", "target": "/loan/"}, {"source": "/blog/", "target": "/travel/exchange-analysis/"}, {"source": "/blog/", "target": "/travel/expenses/"}, {"source": "/blog/additionaltax/vat-1/", "target": "/blog/additionaltax/vat-3/"}, {"source": "/blog/additionaltax/vat-1/", "target": "/blog/additionaltax/vat-5/"}, {"source": "/blog/additionaltax/vat-1/", "target": "/additionaltax/simple-tax-check/"}, {"source": "/blog/additionaltax/vat-1/", "target": "/tax/"}, {"source": "/blog/additionaltax/vat-1/", "target": "/blog/additionaltax/vat-4/"}, {"source": "/blog/additionaltax/vat-1/", "target": "/additionaltax/supply-calc/"}, {"source": "/blog/additionaltax/vat-1/", "target": "/blog/additionaltax/vat-2/"}, {"source": "/blog/additionaltax/vat-1/", "target": "/additionaltax/batch-vat-calc/"}, {"source": "/blog/additionaltax/vat-1/", "target": "/"}, {"source": "/blog/additionaltax/vat-2/", "target": "/blog/additionaltax/vat-1/"}, {"source": "/blog/additionaltax/vat-2/", "target": "/blog/additionaltax/vat-3/"}, {"source": "/blog/additionaltax/vat-2/", "target": "/blog/additionaltax/vat-5/"}, {"source": "/blog/additionaltax/vat-2/", "target": "/additionaltax/simple-tax-check/"}, {"source": "/blog/additionaltax/vat-2/", "target": "/tax/"}, {"source": "/blog/additionaltax/vat-2/", "target": "/blog/additionaltax/vat-4/"}, {"source": "/blog/additionaltax/vat-2/", "target": "/additionaltax/supply-calc/"}, {"source": "/blog/additionaltax/vat-2/", "target": "/additionaltax/batch-vat-calc/"}, {"source": "/blog/additionaltax/vat-2/", "target": "/"}, {"source": "/blog/additionaltax/vat-3/", "target": "/blog/additionaltax/vat-1/"}, {"source": "/blog/additionaltax/vat-3/", "target": "/blog/additionaltax/vat-5/"}, {"source": "/blog/additionaltax/vat-3/", "target": "/additionaltax/simple-tax-check/"}, {"source": "/blog/additionaltax/vat-3/", "target": "/tax/"}, {"source": "/blog/additionaltax/vat-3/", "target": "/blog/additionaltax/vat-4/"}, {"source": "/blog/additionaltax/vat-3/", "target": "/additionaltax/supply-calc/"}, {"source": "/blog/additionaltax/vat-3/", "target": "/blog/additionaltax/vat-2/"}, {"source": "/blog/additionaltax/vat-3/", "target": "/additionaltax/batch-vat-calc/"}, {"source": "/blog/additionaltax/vat-3/", "target": "/"}, {"source": "/blog/additionaltax/vat-4/", "target": "/blog/additionaltax/vat-1/"}, {"source": "/blog/additionaltax/vat-4/", "target": "/blog/additionaltax/vat-3/"}, {"source": "/blog/additionaltax/vat-4/", "target": "/blog/additionaltax/vat-5/"}, {"source": "/blog/additionaltax/vat-4/", "target": "/additionaltax/simple-tax-check/"}, {"source": "/blog/additionaltax/vat-4/", "target": "/tax/"}, {"source": "/blog/additionaltax/vat-4/", "target": "/additionaltax/supply-calc/"}, {"source": "/blog/additionaltax/vat-4/", "target": "/blog/additionaltax/vat-2/"}, {"source": "/blog/additionaltax/vat-4/", "target": "/additionaltax/batch-vat-calc/"}, {"source": "/blog/additionaltax/vat-4/", "target": "/"}, {"source": "/blog/additionaltax/vat-5/", "target": "/blog/additionaltax/vat-1/"}, {"source": "/blog/additionaltax/vat-5/", "target": "/blog/additionaltax/vat-3/"}, {"source": "/blog/additionaltax/vat-5/", "target": "/additionaltax/simple-tax-check/"}, {"source": "/blog/additionaltax/vat-5/", "target": "/tax/"}, {"source": "/blog/additionaltax/vat-5/", "target": "/blog/additionaltax/vat-4/"}, {"source": "/blog/additionaltax/vat-5/", "target": "/additionaltax/supply-calc/"}, {"source": "/blog/additionaltax/vat-5/", "target": "/blog/additionaltax/vat-2/"}, {"source": "/blog/additionaltax/vat-5/", "target": "/"}, {"source": "/blog/atm-guide-2026/", "target": "/blog/payment-strategy-2026/"}, {"source": "/blog/atm-guide-2026/", "target": "/travel/exchange-calculator/"}, {"source": "/blog/atm-guide-2026/", "target": "/travel/"}, {"source": "/blog/atm-guide-2026/", "target": "/travel/exchange-analysis/"}, {"source": "/blog/atm-guide-2026/", "target": "/blog/re-exchange-2026/"}, {"source": "/blog/atm-guide-2026/", "target": "/travel/expenses/"}, {"source": "/blog/atm-guide-2026/", "target": "/blog/exchange-compare-2026/"}, {"source": "/blog/atm-guide-2026/", "target": "/blog/dcc-block-2026/"}, {"source": "/blog/atm-guide-2026/", "target": "/"}, {"source": "/blog/cma-comparison-2026/", "target": "/compoundcalc/lump-sum/"}, {"source": "/blog/cma-comparison-2026/", "target": "/compoundcalc/rates/"}, {"source": "/blog/cma-comparison-2026/", "target": "/compoundcalc/"}, {"source": "/blog/cma-comparison-2026/", "target": "/blog/savings-installment-2026/"}, {"source": "/blog/cma-comparison-2026/", "target": "/compoundcalc/regular-saving/"}, {"source": "/blog/cma-comparison-2026/", "target": "/compoundcalc/goal100m/"}, {"source": "/blog/cma-comparison-2026/", "target": "/compoundcalc/lumpvsregular/"}, {"source": "/blog/cma-comparison-2026/", "target": "/blog/savings-deposit-2026/"}, {"source": "/blog/cma-comparison-2026/", "target": "/"}, {"source": "/blog/dcc-block-2026/", "target": "/blog/payment-strategy-2026/"}, {"source": "/blog/dcc-block-2026/", "target": "/travel/exchange-calculator/"}, {"source": "/blog/dcc-block-2026/", "target": "/blog/atm-guide-2026/"}, {"source": "/blog/dcc-block-2026/", "target": "/travel/"}, {"source": "/blog/dcc-block-2026/", "target": "/travel/exchange-analysis/"}, {"source": "/blog/dcc-block-2026/", "target": "/blog/re-exchange-2026/"}, {"source": "/blog/dcc-block-2026/", "target": "/travel/expenses/"}, {"source": "/blog/dcc-block-2026/", "target": "/blog/exchange-compare-2026/"}, {"source": "/blog/dcc-block-2026/", "target": "/"}, {"source": "/blog/exchange-compare-2026/", "target": "/blog/payment-strategy-2026/"}, {"source": "/blog/exchange-compare-2026/", "target": "/travel/exchange-calculator/"}, {"source": "/blog/exchange-compare-2026/", "target": "/blog/atm-guide-2026/"}, {"source": "/blog/exchange-compare-2026/", "target": "/travel/"}, {"source": "/blog/exchange-compare-2026/", "target": "/travel/exchange-analysis/"}, {"source": "/blog/exchange-compare-2026/", "target": "/blog/re-exchange-2026/"}, {"source": "/blog/exchange-compare-2026/", "target": "/travel/expenses/"}, {"source": "/blog/exchange-compare-2026/", "target": "/blog/dcc-block-2026/"}, {"source": "/blog/exchange-compare-2026/", "target": "/"}, {"source": "/blog/jeonse-insurance-2026/", "target": "/blog/step-loan-2025/"}, {"source": "/blog/jeonse-insurance-2026/", "target": "/creditcalc/prepay-calc/"}, {"source": "/blog/jeonse-insurance-2026/", "target": "/blog/jeonse-loan-2026/"}, {"source": "/blog/jeonse-insurance-2026/", "target": "/loan/"}, {"source": "/blog/jeonse-insurance-2026/", "target": "/creditcalc/step-loan/"}, {"source": "/blog/jeonse-insurance-2026/", "target": "/blog/newlywed-baby-loan-2026/"}, {"source": "/blog/jeonse-insurance-2026/", "target": "/blog/policy-mortgage-2025/"}, {"source": "/blog/jeonse-insurance-2026/", "target": "/"}, {"source": "/blog/jeonse-loan-2026/", "target": "/blog/jeonse-insurance-2026/"}, {"source": "/blog/jeonse-loan-2026/", "target": "/blog/step-loan-2025/"}, {"source": "/blog/jeonse-loan-2026/", "target": "/creditcalc/prepay-calc/"}, {"source": "/blog/jeonse-loan-2026/", "target": "/loan/"}, {"source": "/blog/jeonse-loan-2026/", "target": "/creditcalc/step-loan/"}, {"source": "/blog/jeonse-loan-2026/", "target": "/blog/newlywed-baby-loan-2026/"}, {"source": "/blog/jeonse-loan-2026/", "target": "/blog/policy-mortgage-2025/"}, {"source": "/blog/jeonse-loan-2026/", "target": "/"}, {"source": "/blog/military-salary-2025/", "target": "/military/savings/"}, {"source": "/blog/military-salary-2025/", "target": "/compoundcalc/regular-saving/"}, {"source": "/blog/military-salary-2025/", "target": "/military/score/"}, {"source": "/blog/military-salary-2025/", "target": "/military/salary/"}, {"source": "/blog/military-salary-2025/", "target": "/compoundcalc/goal100m/"}, {"source": "/blog/military-salary-2025/", "target": "/"}, {"source": "/blog/military-savings/", "target": "/compoundcalc/"}, {"source": "/blog/military-savings/", "target": "/military/savings/"}, {"source": "/blog/military-savings/", "target": "/military/salary/"}, {"source": "/blog/military-savings/", "target": "/military/score/"}, {"source": "/blog/military-savings/", "target": "/"}, {"source": "/blog/newlywed-baby-loan-2026/", "target": "/blog/jeonse-insurance-2026/"}, {"source": "/blog/newlywed-baby-loan-2026/", "target": "/blog/step-loan-2025/"}, {"source": "/blog/newlywed-baby-loan-2026/", "target": "/creditcalc/prepay-calc/"}, {"source": "/blog/newlywed-baby-loan-2026/", "target": "/blog/jeonse-loan-2026/"}, {"source": "/blog/newlywed-baby-loan-2026/", "target": "/loan/"}, {"source": "/blog/newlywed-baby-loan-2026/", "target": "/creditcalc/step-loan/"}, {"source": "/blog/newlywed-baby-loan-2026/", "target": "/blog/policy-mortgage-2025/"}, {"source": "/blog/newlywed-baby-loan-2026/", "target": "/"}, {"source": "/blog/payment-strategy-2026/", "target": "/travel/exchange-calculator/"}, {"source": "/blog/payment-strategy-2026/", "target": "/blog/atm-guide-2026/"}, {"source": "/blog/payment-strategy-2026/", "target": "/travel/"}, {"source": "/blog/payment-strategy-2026/", "target": "/travel/exchange-analysis/"}, {"source": "/blog/payment-strategy-2026/", "target": "/blog/re-exchange-2026/"}, {"source": "/blog/payment-strategy-2026/", "target": "/travel/expenses/"}, {"source": "/blog/payment-strategy-2026/", "target": "/blog/exchange-compare-2026/"}, {"source": "/blog/payment-strategy-2026/", "target": "/blog/dcc-block-2026/"}, {"source": "/blog/payment-strategy-2026/", "target": "/"}, {"source": "/blog/policy-mortgage-2025/", "target": "/blog/jeonse-insurance-2026/"}, {"source": "/blog/policy-mortgage-2025/", "target": "/blog/step-loan-2025/"}, {"source": "/blog/policy-mortgage-2025/", "target": "/creditcalc/prepay-calc/"}, {"source": "/blog/policy-mortgage-2025/", "target": "/blog/jeonse-loan-2026/"}, {"source": "/blog/policy-mortgage-2025/", "target": "/loan/"}, {"source": "/blog/policy-mortgage-2025/", "target": "/creditcalc/step-loan/"}, {"source": "/blog/policy-mortgage-2025/", "target": "/blog/newlywed-baby-loan-2026/"}, {"source": "/blog/policy-mortgage-2025/", "target": "/"}, {"source": "/blog/re-exchange-2026/", "target": "/blog/payment-strategy-2026/"}, {"source": "/blog/re-exchange-2026/", "target": "/travel/exchange-calculator/"}, {"source": "/blog/re-exchange-2026/", "target": "/blog/atm-guide-2026/"}, {"source": "/blog/re-exchange-2026/", "target": "/travel/"}, {"source": "/blog/re-exchange-2026/", "target": "/travel/exchange-analysis/"}, {"source": "/blog/re-exchange-2026/", "target": "/travel/expenses/"}, {"source": "/blog/re-exchange-2026/", "target": "/blog/exchange-compare-2026/"}, {"source": "/blog/re-exchange-2026/", "target": "/blog/dcc-block-2026/"}, {"source": "/blog/re-exchange-2026/", "target": "/"}, {"source": "/blog/savings-deposit-2026/", "target": "/compoundcalc/lump-sum/"}, {"source": "/blog/savings-deposit-2026/", "target": "/compoundcalc/rates/"}, {"source": "/blog/savings-deposit-2026/", "target": "/compoundcalc/"}, {"source": "/blog/savings-deposit-2026/", "target": "/blog/savings-installment-2026/"}, {"source": "/blog/savings-deposit-2026/", "target": "/compoundcalc/regular-saving/"}, {"source": "/blog/savings-deposit-2026/", "target": "/compoundcalc/goal100m/"}, {"source": "/blog/savings-deposit-2026/", "target": "/compoundcalc/lumpvsregular/"}, {"source": "/blog/savings-deposit-2026/", "target": "/blog/cma-comparison-2026/"}, {"source": "/blog/savings-deposit-2026/", "target": "/"}, {"source": "/blog/savings-installment-2026/", "target": "/compoundcalc/lump-sum/"}, {"source": "/blog/savings-installment-2026/", "target": "/compoundcalc/rates/"}, {"source": "/blog/savings-installment-2026/", "target": "/blog/savings-deposit-2026/"}, {"source": "/blog/savings-installment-2026/", "target": "/compoundcalc/"}, {"source": "/blog/savings-installment-2026/", "target": "/compoundcalc/regular-saving/"}, {"source": "/blog/savings-installment-2026/", "target": "/compoundcalc/goal100m/"}, {"source": "/blog/savings-installment-2026/", "target": "/compoundcalc/lumpvsregular/"}, {"source": "/blog/savings-installment-2026/", "target": "/blog/cma-comparison-2026/"}, {"source": "/blog/savings-installment-2026/", "target": "/"}, {"source": "/blog/step-loan-2025/", "target": "/blog/jeonse-insurance-2026/"}, {"source": "/blog/step-loan-2025/", "target": "/creditcalc/prepay-calc/"}, {"source": "/blog/step-loan-2025/", "target": "/blog/jeonse-loan-2026/"}, {"source": "/blog/step-loan-2025/", "target": "/loan/"}, {"source": "/blog/step-loan-2025/", "target": "/creditcalc/step-loan/"}, {"source": "/blog/step-loan-2025/", "target": "/blog/newlywed-baby-loan-2026/"}, {"source": "/blog/step-loan-2025/", "target": "/blog/policy-mortgage-2025/"}, {"source": "/blog/step-loan-2025/", "target": "/"}, {"source": "/care-allowance/", "target": "/child-allowance/"}, {"source": "/care-allowance/", "target": "/income/"}, {"source": "/care-allowance/", "target": "/familycare/"}, {"source": "/care-allowance/", "target": "/parents/"}, {"source": "/care-allowance/", "target": "/"}, {"source": "/child-allowance/", "target": "/care-allowance/"}, {"source": "/child-allowance/", "target": "/income/"}, {"source": "/child-allowance/", "target": "/familycare/"}, {"source": "/child-allowance/", "target": "/parents/"}, {"source": "/child-allowance/", "target": "/"}, {"source": "/childcare/", "target": "/"}, {"source": "/coinmore/", "target": "/"}, {"source": "/compoundcalc/", "target": "/blog/"}, {"source": "/compoundcalc/", "target": "/blog/cma-comparison-2026/"}, {"source": "/compoundcalc/", "target": "/blog/savings-installment-2026/"}, {"source": "/compoundcalc/", "target": "/blog/savings-deposit-2026/"}, {"source": "/compoundcalc/", "target": "/"}, {"source": "/compoundcalc/goal100m/", "target": "/compoundcalc/lump-sum/"}, {"source": "/compoundcalc/goal100m/", "target": "/compoundcalc/rates/"}, {"source": "/compoundcalc/goal100m/", "target": "/asset/"}, {"source": "/compoundcalc/goal100m/", "target": "/compoundcalc/regular-saving/"}, {"source": "/compoundcalc/goal100m/", "target": "/compoundcalc/lumpvsregular/"}, {"source": "/compoundcalc/goal100m/", "target": "/"}, {"source": "/compoundcalc/lump-sum/", "target": "/compoundcalc/rates/"}, {"source": "/compoundcalc/lump-sum/", "target": "/asset/"}, {"source": "/compoundcalc/lump-sum/", "target": "/compoundcalc/regular-saving/"}, {"source": "/compoundcalc/lump-sum/", "target": "/compoundcalc/goal100m/"}, {"source": "/compoundcalc/lump-sum/", "target": "/compoundcalc/lumpvsregular/"}, {"source": "/compoundcalc/lump-sum/", "target": "/"}, {"source": "/compoundcalc/lumpvsregular/", "target": "/compoundcalc/lump-sum/"}, {"source": "/compoundcalc/lumpvsregular/", "target": "/compoundcalc/rates/"}, {"source": "/compoundcalc/lumpvsregular/", "target": "/asset/"}, {"source": "/compoundcalc/lumpvsregular/", "target": "/compoundcalc/regular-saving/"}, {"source": "/compoundcalc/lumpvsregular/", "target": "/compoundcalc/goal100m/"}, {"source": "/compoundcalc/lumpvsregular/", "target": "/"}, {"source": "/compoundcalc/rates/", "target": "/asset/"}, {"source": "/compoundcalc/rates/", "target": "/"}, {"source": "/compoundcalc/regular-saving/", "target": "/compoundcalc/lump-sum/"}, {"source": "/compoundcalc/regular-saving/", "target": "/compoundcalc/rates/"}, {"source": "/compoundcalc/regular-saving/", "target": "/asset/"}, {"source": "/compoundcalc/regular-saving/", "target": "/compoundcalc/goal100m/"}, {"source": "/compoundcalc/regular-saving/", "target": "/compoundcalc/lumpvsregular/"}, {"source": "/compoundcalc/regular-saving/", "target": "/"}, {"source": "/creditcalc/emergency-loan/", "target": "/compoundcalc/"}, {"source": "/creditcalc/emergency-loan/", "target": "/creditcalc/prepay-calc/"}, {"source": "/creditcalc/emergency-loan/", "target": "/creditcalc/step-loan/"}, {"source": "/creditcalc/emergency-loan/", "target": "/additionaltax/supply-calc/"}, {"source": "/creditcalc/emergency-loan/", "target": "/expense/"}, {"source": "/creditcalc/emergency-loan/", "target": "/"}, {"source": "/creditcalc/prepay-calc/", "target": "/compoundcalc/"}, {"source": "/creditcalc/prepay-calc/", "target": "/creditcalc/emergency-loan/"}, {"source": "/creditcalc/prepay-calc/", "target": "/creditcalc/step-loan/"}, {"source": "/creditcalc/prepay-calc/", "target": "/additionaltax/supply-calc/"}, {"source": "/creditcalc/prepay-calc/", "target": "/expense/"}, {"source": "/creditcalc/prepay-calc/", "target": "/"}, {"source": "/creditcalc/step-loan/", "target": "/creditcalc/emergency-loan/"}, {"source": "/creditcalc/step-loan/", "target": "/creditcalc/prepay-calc/"}, {"source": "/creditcalc/step-loan/", "target": "/expense/"}, {"source": "/creditcalc/step-loan/", "target": "/"}, {"source": "/electricity/", "target": "/compoundcalc/"}, {"source": "/electricity/", "target": "/travel/exchange-calculator/"}, {"source": "/electricity/", "target": "/unemployment/"}, {"source": "/electricity/", "target": "/"}, {"source": "/expense/", "target": "/travel/exchange-calculator/"}, {"source": "/expense/", "target": "/additionaltax/supply-calc/"}, {"source": "/expense/", "target": "/creditcalc/step-loan/"}, {"source": "/familycare/", "target": "/care-allowance/"}, {"source": "/familycare/", "target": "/child-allowance/"}, {"source": "/familycare/", "target": "/income/"}, {"source": "/familycare/", "target": "/parents/"}, {"source": "/familycare/", "target": "/"}, {"source": "/income/", "target": "/military/savings/"}, {"source": "/income/", "target": "/parents/"}, {"source": "/income/", "target": "/unemployment/"}, {"source": "/loan/", "target": "/blog/jeonse-insurance-2026/"}, {"source": "/loan/", "target": "/blog/step-loan-2025/"}, {"source": "/loan/", "target": "/blog/jeonse-loan-2026/"}, {"source": "/loan/", "target": "/blog/newlywed-baby-loan-2026/"}, {"source": "/loan/", "target": "/blog/policy-mortgage-2025/"}, {"source": "/loan/", "target": "/"}, {"source": "/military/", "target": "/"}, {"source": "/military/salary/", "target": "/coinmore/"}, {"source": "/military/salary/", "target": "/military/savings/"}, {"source": "/military/salary/", "target": "/income/"}, {"source": "/military/salary/", "target": "/parents/"}, {"source": "/military/salary/", "target": "/military/score/"}, {"source": "/military/salary/", "target": "/compoundcalc/goal100m/"}, {"source": "/military/salary/", "target": "/unemployment/"}, {"source": "/military/salary/", "target": "/"}, {"source": "/military/savings/", "target": "/coinmore/"}, {"source": "/military/savings/", "target": "/compoundcalc/"}, {"source": "/military/savings/", "target": "/income/"}, {"source": "/military/savings/", "target": "/military/score/"}, {"source": "/military/savings/", "target": "/military/salary/"}, {"source": "/military/savings/", "target": "/"}, {"source": "/military/score/", "target": "/military/savings/"}, {"source": "/military/score/", "target": "/income/"}, {"source": "/military/score/", "target": "/military/salary/"}, {"source": "/military/score/", "target": "/"}, {"source": "/parents/", "target": "/care-allowance/"}, {"source": "/parents/", "target": "/child-allowance/"}, {"source": "/parents/", "target": "/income/"}, {"source": "/parents/", "target": "/familycare/"}, {"source": "/parents/", "target": "/"}, {"source": "/tax-account/", "target": "/"}, {"source": "/tax-account/compare/", "target": "/tax-account/year-end/"}, {"source": "/tax-account/compare/", "target": "/tax-account/exit/"}, {"source": "/tax-account/compare/", "target": "/asset/"}, {"source": "/tax-account/compare/", "target": "/tax-account/limit/"}, {"source": "/tax-account/compare/", "target": "/blog/savings-deposit-2026/"}, {"source": "/tax-account/compare/", "target": "/"}, {"source": "/tax-account/exit/", "target": "/tax-account/year-end/"}, {"source": "/tax-account/exit/", "target": "/asset/"}, {"source": "/tax-account/exit/", "target": "/tax-account/limit/"}, {"source": "/tax-account/exit/", "target": "/tax-account/compare/"}, {"source": "/tax-account/exit/", "target": "/"}, {"source": "/tax-account/limit/", "target": "/tax-account/year-end/"}, {"source": "/tax-account/limit/", "target": "/tax-account/exit/"}, {"source": "/tax-account/limit/", "target": "/asset/"}, {"source": "/tax-account/limit/", "target": "/tax-account/compare/"}, {"source": "/tax-account/limit/", "target": "/"}, {"source": "/tax-account/year-end/", "target": "/tax-account/exit/"}, {"source": "/tax-account/year-end/", "target": "/asset/"}, {"source": "/tax-account/year-end/", "target": "/tax-account/limit/"}, {"source": "/tax-account/year-end/", "target": "/tax-account/compare/"}, {"source": "/tax-account/year-end/", "target": "/"}, {"source": "/tax/", "target": "/blog/additionaltax/vat-3/"}, {"source": "/tax/", "target": "/blog/additionaltax/vat-1/"}, {"source": "/tax/", "target": "/blog/additionaltax/vat-5/"}, {"source": "/tax/", "target": "/blog/additionaltax/vat-4/"}, {"source": "/tax/", "target": "/blog/additionaltax/vat-2/"}, {"source": "/tax/", "target": "/"}, {"source": "/travel/", "target": "/travel/exchange-calculator/philippines/"}, {"source": "/travel/", "target": "/travel/exchange-calculator/laos/"}, {"source": "/travel/", "target": "/travel/exchange-calculator/vietnam/"}, {"source": "/travel/", "target": "/blog/payment-strategy-2026/"}, {"source": "/travel/", "target": "/blog/exchange-compare-2026/"}, {"source": "/travel/", "target": "/blog/dcc-block-2026/"}, {"source": "/travel/", "target": "/travel/exchange-calculator/hongkong/"}, {"source": "/travel/", "target": "/travel/exchange-calculator/indonesia/"}, {"source": "/travel/", "target": "/travel/exchange-calculator/taiwan/"}, {"source": "/travel/", "target": "/travel/exchange-calculator/cambodia/"}, {"source": "/travel/", "target": "/blog/atm-guide-2026/"}, {"source": "/travel/", "target": "/blog/re-exchange-2026/"}, {"source": "/travel/", "target": "/travel/exchange-calculator/malaysia/"}, {"source": "/travel/", "target": "/travel/exchange-calculator/thailand/"}, {"source": "/travel/", "target": "/travel/exchange-calculator/myanmar/"}, {"source": "/travel/", "target": "/"}, {"source": "/travel/exchange-analysis/", "target": "/terms/"}, {"source": "/travel/exchange-analysis/", "target": "/about/"}, {"source": "/travel/exchange-analysis/", "target": "/youth/"}, {"source": "/travel/exchange-analysis/", "target": "/unemployment/"}, {"source": "/travel/exchange-analysis/", "target": "/military/savings/"}, {"source": "/travel/exchange-analysis/", "target": "/compoundcalc/regular-saving/"}, {"source": "/travel/exchange-analysis/", "target": "/military/salary/"}, {"source": "/travel/exchange-analysis/", "target": "/electricity/"}, {"source": "/travel/exchange-analysis/", "target": "/compoundcalc/"}, {"source": "/travel/exchange-analysis/", "target": "/travel/exchange-calculator/"}, {"source": "/travel/exchange-analysis/", "target": "/additionaltax/supply-calc/"}, {"source": "/travel/exchange-analysis/", "target": "/military/score/"}, {"source": "/travel/exchange-analysis/", "target": "/compoundcalc/goal100m/"}, {"source": "/travel/exchange-analysis/", "target": "/tax/"}, {"source": "/travel/exchange-analysis/", "target": "/loan/"}, {"source": "/travel/exchange-analysis/", "target": "/contact/"}, {"source": "/travel/exchange-analysis/", "target": "/coinmore/"}, {"source": "/travel/exchange-analysis/", "target": "/parents/"}, {"source": "/travel/exchange-analysis/", "target": "/expense/"}, {"source": "/travel/exchange-analysis/", "target": "/privacy/"}, {"source": "/travel/exchange-analysis/", "target": "/travel/expenses/"}, {"source": "/travel/exchange-analysis/", "target": "/"}, {"source": "/travel/exchange-calculator/", "target": "/terms/"}, {"source": "/travel/exchange-calculator/", "target": "/about/"}, {"source": "/travel/exchange-calculator/", "target": "/youth/"}, {"source": "/travel/exchange-calculator/", "target": "/unemployment/"}, {"source": "/travel/exchange-calculator/", "target": "/military/savings/"}, {"source": "/travel/exchange-calculator/", "target": "/military/salary/"}, {"source": "/travel/exchange-calculator/", "target": "/electricity/"}, {"source": "/travel/exchange-calculator/", "target": "/compoundcalc/"}, {"source": "/travel/exchange-calculator/", "target": "/military/score/"}, {"source": "/travel/exchange-calculator/", "target": "/tax/"}, {"source": "/travel/exchange-calculator/", "target": "/loan/"}, {"source": "/travel/exchange-calculator/", "target": "/travel/exchange-analysis/"}, {"source": "/travel/exchange-calculator/", "target": "/contact/"}, {"source": "/travel/exchange-calculator/", "target": "/coinmore/"}, {"source": "/travel/exchange-calculator/", "target": "/parents/"}, {"source": "/travel/exchange-calculator/", "target": "/expense/"}, {"source": "/travel/exchange-calculator/", "target": "/privacy/"}, {"source": "/travel/exchange-calculator/", "target": "/travel/expenses/"}, {"source": "/travel/exchange-calculator/", "target": "/"}, {"source": "/travel/exchange-calculator/cambodia/", "target": "/travel/exchange-calculator/philippines/"}, {"source": "/travel/exchange-calculator/cambodia/", "target": "/travel/exchange-calculator/laos/"}, {"source": "/travel/exchange-calculator/cambodia/", "target": "/terms/"}, {"source": "/travel/exchange-calculator/cambodia/", "target": "/about/"}, {"source": "/travel/exchange-calculator/cambodia/", "target": "/youth/"}, {"source": "/travel/exchange-calculator/cambodia/", "target": "/unemployment/"}, {"source": "/travel/exchange-calculator/cambodia/", "target": "/travel/exchange-calculator/vietnam/"}, {"source": "/travel/exchange-calculator/cambodia/", "target": "/military/savings/"}, {"source": "/travel/exchange-calculator/cambodia/", "target": "/military/salary/"}, {"source": "/travel/exchange-calculator/cambodia/", "target": "/electricity/"}, {"source": "/travel/exchange-calculator/cambodia/", "target": "/travel/exchange-calculator/hongkong/"}, {"source": "/travel/exchange-calculator/cambodia/", "target": "/compoundcalc/"}, {"source": "/travel/exchange-calculator/cambodia/", "target": "/travel/"}, {"source": "/travel/exchange-calculator/cambodia/", "target": "/military/score/"}, {"source": "/travel/exchange-calculator/cambodia/", "target": "/travel/exchange-calculator/indonesia/"}, {"source": "/travel/exchange-calculator/cambodia/", "target": "/tax/"}, {"source": "/travel/exchange-calculator/cambodia/", "target": "/travel/exchange-calculator/taiwan/"}, {"source": "/travel/exchange-calculator/cambodia/", "target": "/loan/"}, {"source": "/travel/exchange-calculator/cambodia/", "target": "/travel/exchange-analysis/"}, {"source": "/travel/exchange-calculator/cambodia/", "target": "/travel/exchange-calculator/malaysia/"}, {"source": "/travel/exchange-calculator/cambodia/", "target": "/travel/exchange-calculator/thailand/"}, {"source": "/travel/exchange-calculator/cambodia/", "target": "/contact/"}, {"source": "/travel/exchange-calculator/cambodia/", "target": "/coinmore/"}, {"source": "/travel/exchange-calculator/cambodia/", "target": "/parents/"}, {"source": "/travel/exchange-calculator/cambodia/", "target": "/expense/"}, {"source": "/travel/exchange-calculator/cambodia/", "target": "/privacy/"}, {"source": "/travel/exchange-calculator/cambodia/", "target": "/travel/exchange-calculator/myanmar/"}, {"source": "/travel/exchange-calculator/cambodia/", "target": "/travel/expenses/"}, {"source": "/travel/exchange-calculator/cambodia/", "target": "/"}, {"source": "/travel/exchange-calculator/hongkong/", "target": "/travel/exchange-calculator/philippines/"}, {"source": "/travel/exchange-calculator/hongkong/", "target": "/travel/exchange-calculator/laos/"}, {"source": "/travel/exchange-calculator/hongkong/", "target": "/terms/"}, {"source": "/travel/exchange-calculator/hongkong/", "target": "/about/"}, {"source": "/travel/exchange-calculator/hongkong/", "target": "/youth/"}, {"source": "/travel/exchange-calculator/hongkong/", "target": "/unemployment/"}, {"source": "/travel/exchange-calculator/hongkong/", "target": "/travel/exchange-calculator/vietnam/"}, {"source": "/travel/exchange-calculator/hongkong/", "target": "/military/savings/"}, {"source": "/travel/exchange-calculator/hongkong/", "target": "/military/salary/"}, {"source": "/travel/exchange-calculator/hongkong/", "target": "/electricity/"}, {"source": "/travel/exchange-calculator/hongkong/", "target": "/compoundcalc/"}, {"source": "/travel/exchange-calculator/hongkong/", "target": "/travel/"}, {"source": "/travel/exchange-calculator/hongkong/", "target": "/military/score/"}, {"source": "/travel/exchange-calculator/hongkong/", "target": "/travel/exchange-calculator/indonesia/"}, {"source": "/travel/exchange-calculator/hongkong/", "target": "/tax/"}, {"source": "/travel/exchange-calculator/hongkong/", "target": "/travel/exchange-calculator/taiwan/"}, {"source": "/travel/exchange-calculator/hongkong/", "target": "/loan/"}, {"source": "/travel/exchange-calculator/hongkong/", "target": "/travel/exchange-calculator/cambodia/"}, {"source": "/travel/exchange-calculator/hongkong/", "target": "/travel/exchange-analysis/"}, {"source": "/travel/exchange-calculator/hongkong/", "target": "/travel/exchange-calculator/malaysia/"}, {"source": "/travel/exchange-calculator/hongkong/", "target": "/travel/exchange-calculator/thailand/"}, {"source": "/travel/exchange-calculator/hongkong/", "target": "/contact/"}, {"source": "/travel/exchange-calculator/hongkong/", "target": "/coinmore/"}, {"source": "/travel/exchange-calculator/hongkong/", "target": "/parents/"}, {"source": "/travel/exchange-calculator/hongkong/", "target": "/expense/"}, {"source": "/travel/exchange-calculator/hongkong/", "target": "/privacy/"}, {"source": "/travel/exchange-calculator/hongkong/", "target": "/travel/exchange-calculator/myanmar/"}, {"source": "/travel/exchange-calculator/hongkong/", "target": "/travel/expenses/"}, {"source": "/travel/exchange-calculator/hongkong/", "target": "/"}, {"source": "/travel/exchange-calculator/indonesia/", "target": "/travel/exchange-calculator/philippines/"}, {"source": "/travel/exchange-calculator/indonesia/", "target": "/travel/exchange-calculator/laos/"}, {"source": "/travel/exchange-calculator/indonesia/", "target": "/terms/"}, {"source": "/travel/exchange-calculator/indonesia/", "target": "/about/"}, {"source": "/travel/exchange-calculator/indonesia/", "target": "/youth/"}, {"source": "/travel/exchange-calculator/indonesia/", "target": "/unemployment/"}, {"source": "/travel/exchange-calculator/indonesia/", "target": "/travel/exchange-calculator/vietnam/"}, {"source": "/travel/exchange-calculator/indonesia/", "target": "/military/savings/"}, {"source": "/travel/exchange-calculator/indonesia/", "target": "/military/salary/"}, {"source": "/travel/exchange-calculator/indonesia/", "target": "/electricity/"}, {"source": "/travel/exchange-calculator/indonesia/", "target": "/travel/exchange-calculator/hongkong/"}, {"source": "/travel/exchange-calculator/indonesia/", "target": "/compoundcalc/"}, {"source": "/travel/exchange-calculator/indonesia/", "target": "/travel/"}, {"source": "/travel/exchange-calculator/indonesia/", "target": "/military/score/"}, {"source": "/travel/exchange-calculator/indonesia/", "target": "/tax/"}, {"source": "/travel/exchange-calculator/indonesia/", "target": "/travel/exchange-calculator/taiwan/"}, {"source": "/travel/exchange-calculator/indonesia/", "target": "/loan/"}, {"source": "/travel/exchange-calculator/indonesia/", "target": "/travel/exchange-calculator/cambodia/"}, {"source": "/travel/exchange-calculator/indonesia/", "target": "/travel/exchange-analysis/"}, {"source": "/travel/exchange-calculator/indonesia/", "target": "/travel/exchange-calculator/malaysia/"}, {"source": "/travel/exchange-calculator/indonesia/", "target": "/travel/exchange-calculator/thailand/"}, {"source": "/travel/exchange-calculator/indonesia/", "target": "/contact/"}, {"source": "/travel/exchange-calculator/indonesia/", "target": "/coinmore/"}, {"source": "/travel/exchange-calculator/indonesia/", "target": "/parents/"}, {"source": "/travel/exchange-calculator/indonesia/", "target": "/expense/"}, {"source": "/travel/exchange-calculator/indonesia/", "target": "/privacy/"}, {"source": "/travel/exchange-calculator/indonesia/", "target": "/travel/exchange-calculator/myanmar/"}, {"source": "/travel/exchange-calculator/indonesia/", "target": "/travel/expenses/"}, {"source": "/travel/exchange-calculator/indonesia/", "target": "/"}, {"source": "/travel/exchange-calculator/laos/", "target": "/travel/exchange-calculator/philippines/"}, {"source": "/travel/exchange-calculator/laos/", "target": "/terms/"}, {"source": "/travel/exchange-calculator/laos/", "target": "/about/"}, {"source": "/travel/exchange-calculator/laos/", "target": "/youth/"}, {"source": "/travel/exchange-calculator/laos/", "target": "/unemployment/"}, {"source": "/travel/exchange-calculator/laos/", "target": "/travel/exchange-calculator/vietnam/"}, {"source": "/travel/exchange-calculator/laos/", "target": "/military/savings/"}, {"source": "/travel/exchange-calculator/laos/", "target": "/military/salary/"}, {"source": "/travel/exchange-calculator/laos/", "target": "/electricity/"}, {"source": "/travel/exchange-calculator/laos/", "target": "/travel/exchange-calculator/hongkong/"}, {"source": "/travel/exchange-calculator/laos/", "target": "/compoundcalc/"}, {"source": "/travel/exchange-calculator/laos/", "target": "/travel/"}, {"source": "/travel/exchange-calculator/laos/", "target": "/military/score/"}, {"source": "/travel/exchange-calculator/laos/", "target": "/travel/exchange-calculator/indonesia/"}, {"source": "/travel/exchange-calculator/laos/", "target": "/tax/"}, {"source": "/travel/exchange-calculator/laos/", "target": "/travel/exchange-calculator/taiwan/"}, {"source": "/travel/exchange-calculator/laos/", "target": "/loan/"}, {"source": "/travel/exchange-calculator/laos/", "target": "/travel/exchange-calculator/cambodia/"}, {"source": "/travel/exchange-calculator/laos/", "target": "/travel/exchange-analysis/"}, {"source": "/travel/exchange-calculator/laos/", "target": "/travel/exchange-calculator/malaysia/"}, {"source": "/travel/exchange-calculator/laos/", "target": "/travel/exchange-calculator/thailand/"}, {"source": "/travel/exchange-calculator/laos/", "target": "/contact/"}, {"source": "/travel/exchange-calculator/laos/", "target": "/coinmore/"}, {"source": "/travel/exchange-calculator/laos/", "target": "/parents/"}, {"source": "/travel/exchange-calculator/laos/", "target": "/expense/"}, {"source": "/travel/exchange-calculator/laos/", "target": "/privacy/"}, {"source": "/travel/exchange-calculator/laos/", "target": "/travel/exchange-calculator/myanmar/"}, {"source": "/travel/exchange-calculator/laos/", "target": "/travel/expenses/"}, {"source": "/travel/exchange-calculator/laos/", "target": "/"}, {"source": "/travel/exchange-calculator/malaysia/", "target": "/travel/exchange-calculator/philippines/"}, {"source": "/travel/exchange-calculator/malaysia/", "target": "/travel/exchange-calculator/laos/"}, {"source": "/travel/exchange-calculator/malaysia/", "target": "/terms/"}, {"source": "/travel/exchange-calculator/malaysia/", "target": "/about/"}, {"source": "/travel/exchange-calculator/malaysia/", "target": "/youth/"}, {"source": "/travel/exchange-calculator/malaysia/", "target": "/unemployment/"}, {"source": "/travel/exchange-calculator/malaysia/", "target": "/travel/exchange-calculator/vietnam/"}, {"source": "/travel/exchange-calculator/malaysia/", "target": "/military/savings/"}, {"source": "/travel/exchange-calculator/malaysia/", "target": "/military/salary/"}, {"source": "/travel/exchange-calculator/malaysia/", "target": "/electricity/"}, {"source": "/travel/exchange-calculator/malaysia/", "target": "/travel/exchange-calculator/hongkong/"}, {"source": "/travel/exchange-calculator/malaysia/", "target": "/compoundcalc/"}, {"source": "/travel/exchange-calculator/malaysia/", "target": "/travel/"}, {"source": "/travel/exchange-calculator/malaysia/", "target": "/military/score/"}, {"source": "/travel/exchange-calculator/malaysia/", "target": "/travel/exchange-calculator/indonesia/"}, {"source": "/travel/exchange-calculator/malaysia/", "target": "/tax/"}, {"source": "/travel/exchange-calculator/malaysia/", "target": "/travel/exchange-calculator/taiwan/"}, {"source": "/travel/exchange-calculator/malaysia/", "target": "/loan/"}, {"source": "/travel/exchange-calculator/malaysia/", "target": "/travel/exchange-calculator/cambodia/"}, {"source": "/travel/exchange-calculator/malaysia/", "target": "/travel/exchange-analysis/"}, {"source": "/travel/exchange-calculator/malaysia/", "target": "/travel/exchange-calculator/thailand/"}, {"source": "/travel/exchange-calculator/malaysia/", "target": "/contact/"}, {"source": "/travel/exchange-calculator/malaysia/", "target": "/coinmore/"}, {"source": "/travel/exchange-calculator/malaysia/", "target": "/parents/"}, {"source": "/travel/exchange-calculator/malaysia/", "target": "/expense/"}, {"source": "/travel/exchange-calculator/malaysia/", "target": "/privacy/"}, {"source": "/travel/exchange-calculator/malaysia/", "target": "/travel/exchange-calculator/myanmar/"}, {"source": "/travel/exchange-calculator/malaysia/", "target": "/travel/expenses/"}, {"source": "/travel/exchange-calculator/malaysia/", "target": "/"}, {"source": "/travel/exchange-calculator/myanmar/", "target": "/travel/exchange-calculator/philippines/"}, {"source": "/travel/exchange-calculator/myanmar/", "target": "/travel/exchange-calculator/laos/"}, {"source": "/travel/exchange-calculator/myanmar/", "target": "/terms/"}, {"source": "/travel/exchange-calculator/myanmar/", "target": "/about/"}, {"source": "/travel/exchange-calculator/myanmar/", "target": "/youth/"}, {"source": "/travel/exchange-calculator/myanmar/", "target": "/unemployment/"}, {"source": "/travel/exchange-calculator/myanmar/", "target": "/travel/exchange-calculator/vietnam/"}, {"source": "/travel/exchange-calculator/myanmar/", "target": "/military/savings/"}, {"source": "/travel/exchange-calculator/myanmar/", "target": "/military/salary/"}, {"source": "/travel/exchange-calculator/myanmar/", "target": "/electricity/"}, {"source": "/travel/exchange-calculator/myanmar/", "target": "/travel/exchange-calculator/hongkong/"}, {"source": "/travel/exchange-calculator/myanmar/", "target": "/compoundcalc/"}, {"source": "/travel/exchange-calculator/myanmar/", "target": "/travel/"}, {"source": "/travel/exchange-calculator/myanmar/", "target": "/military/score/"}, {"source": "/travel/exchange-calculator/myanmar/", "target": "/travel/exchange-calculator/indonesia/"}, {"source": "/travel/exchange-calculator/myanmar/", "target": "/tax/"}, {"source": "/travel/exchange-calculator/myanmar/", "target": "/travel/exchange-calculator/taiwan/"}, {"source": "/travel/exchange-calculator/myanmar/", "target": "/loan/"}, {"source": "/travel/exchange-calculator/myanmar/", "target": "/travel/exchange-calculator/cambodia/"}, {"source": "/travel/exchange-calculator/myanmar/", "target": "/travel/exchange-analysis/"}, {"source": "/travel/exchange-calculator/myanmar/", "target": "/travel/exchange-calculator/malaysia/"}, {"source": "/travel/exchange-calculator/myanmar/", "target": "/travel/exchange-calculator/thailand/"}, {"source": "/travel/exchange-calculator/myanmar/", "target": "/contact/"}, {"source": "/travel/exchange-calculator/myanmar/", "target": "/coinmore/"}, {"source": "/travel/exchange-calculator/myanmar/", "target": "/parents/"}, {"source": "/travel/exchange-calculator/myanmar/", "target": "/expense/"}, {"source": "/travel/exchange-calculator/myanmar/", "target": "/privacy/"}, {"source": "/travel/exchange-calculator/myanmar/", "target": "/travel/expenses/"}, {"source": "/travel/exchange-calculator/myanmar/", "target": "/"}, {"source": "/travel/exchange-calculator/philippines/", "target": "/travel/exchange-calculator/laos/"}, {"source": "/travel/exchange-calculator/philippines/", "target": "/terms/"}, {"source": "/travel/exchange-calculator/philippines/", "target": "/about/"}, {"source": "/travel/exchange-calculator/philippines/", "target": "/youth/"}, {"source": "/travel/exchange-calculator/philippines/", "target": "/unemployment/"}, {"source": "/travel/exchange-calculator/philippines/", "target": "/travel/exchange-calculator/vietnam/"}, {"source": "/travel/exchange-calculator/philippines/", "target": "/military/savings/"}, {"source": "/travel/exchange-calculator/philippines/", "target": "/military/salary/"}, {"source": "/travel/exchange-calculator/philippines/", "target": "/electricity/"}, {"source": "/travel/exchange-calculator/philippines/", "target": "/travel/exchange-calculator/hongkong/"}, {"source": "/travel/exchange-calculator/philippines/", "target": "/compoundcalc/"}, {"source": "/travel/exchange-calculator/philippines/", "target": "/travel/"}, {"source": "/travel/exchange-calculator/philippines/", "target": "/military/score/"}, {"source": "/travel/exchange-calculator/philippines/", "target": "/travel/exchange-calculator/indonesia/"}, {"source": "/travel/exchange-calculator/philippines/", "target": "/tax/"}, {"source": "/travel/exchange-calculator/philippines/", "target": "/travel/exchange-calculator/taiwan/"}, {"source": "/travel/exchange-calculator/philippines/", "target": "/loan/"}, {"source": "/travel/exchange-calculator/philippines/", "target": "/travel/exchange-calculator/cambodia/"}, {"source": "/travel/exchange-calculator/philippines/", "target": "/travel/exchange-analysis/"}, {"source": "/travel/exchange-calculator/philippines/", "target": "/travel/exchange-calculator/malaysia/"}, {"source": "/travel/exchange-calculator/philippines/", "target": "/travel/exchange-calculator/thailand/"}, {"source": "/travel/exchange-calculator/philippines/", "target": "/contact/"}, {"source": "/travel/exchange-calculator/philippines/", "target": "/coinmore/"}, {"source": "/travel/exchange-calculator/philippines/", "target": "/parents/"}, {"source": "/travel/exchange-calculator/philippines/", "target": "/expense/"}, {"source": "/travel/exchange-calculator/philippines/", "target": "/privacy/"}, {"source": "/travel/exchange-calculator/philippines/", "target": "/travel/exchange-calculator/myanmar/"}, {"source": "/travel/exchange-calculator/philippines/", "target": "/travel/expenses/"}, {"source": "/travel/exchange-calculator/philippines/", "target": "/"}, {"source": "/travel/exchange-calculator/taiwan/", "target": "/travel/exchange-calculator/philippines/"}, {"source": "/travel/exchange-calculator/taiwan/", "target": "/travel/exchange-calculator/laos/"}, {"source": "/travel/exchange-calculator/taiwan/", "target": "/terms/"}, {"source": "/travel/exchange-calculator/taiwan/", "target": "/about/"}, {"source": "/travel/exchange-calculator/taiwan/", "target": "/youth/"}, {"source": "/travel/exchange-calculator/taiwan/", "target": "/unemployment/"}, {"source": "/travel/exchange-calculator/taiwan/", "target": "/travel/exchange-calculator/vietnam/"}, {"source": "/travel/exchange-calculator/taiwan/", "target": "/military/savings/"}, {"source": "/travel/exchange-calculator/taiwan/", "target": "/military/salary/"}, {"source": "/travel/exchange-calculator/taiwan/", "target": "/electricity/"}, {"source": "/travel/exchange-calculator/taiwan/", "target": "/travel/exchange-calculator/hongkong/"}, {"source": "/travel/exchange-calculator/taiwan/", "target": "/compoundcalc/"}, {"source": "/travel/exchange-calculator/taiwan/", "target": "/travel/"}, {"source": "/travel/exchange-calculator/taiwan/", "target": "/military/score/"}, {"source": "/travel/exchange-calculator/taiwan/", "target": "/travel/exchange-calculator/indonesia/"}, {"source": "/travel/exchange-calculator/taiwan/", "target": "/tax/"}, {"source": "/travel/exchange-calculator/taiwan/", "target": "/loan/"}, {"source": "/travel/exchange-calculator/taiwan/", "target": "/travel/exchange-calculator/cambodia/"}, {"source": "/travel/exchange-calculator/taiwan/", "target": "/travel/exchange-analysis/"}, {"source": "/travel/exchange-calculator/taiwan/", "target": "/travel/exchange-calculator/malaysia/"}, {"source": "/travel/exchange-calculator/taiwan/", "target": "/travel/exchange-calculator/thailand/"}, {"source": "/travel/exchange-calculator/taiwan/", "target": "/contact/"}, {"source": "/travel/exchange-calculator/taiwan/", "target": "/coinmore/"}, {"source": "/travel/exchange-calculator/taiwan/", "target": "/parents/"}, {"source": "/travel/exchange-calculator/taiwan/", "target": "/expense/"}, {"source": "/travel/exchange-calculator/taiwan/", "target": "/privacy/"}, {"source": "/travel/exchange-calculator/taiwan/", "target": "/travel/exchange-calculator/myanmar/"}, {"source": "/travel/exchange-calculator/taiwan/", "target": "/travel/expenses/"}, {"source": "/travel/exchange-calculator/taiwan/", "target": "/"}, {"source": "/travel/exchange-calculator/thailand/", "target": "/travel/exchange-calculator/philippines/"}, {"source": "/travel/exchange-calculator/thailand/", "target": "/travel/exchange-calculator/laos/"}, {"source": "/travel/exchange-calculator/thailand/", "target": "/terms/"}, {"source": "/travel/exchange-calculator/thailand/", "target": "/about/"}, {"source": "/travel/exchange-calculator/thailand/", "target": "/youth/"}, {"source": "/travel/exchange-calculator/thailand/", "target": "/unemployment/"}, {"source": "/travel/exchange-calculator/thailand/", "target": "/travel/exchange-calculator/vietnam/"}, {"source": "/travel/exchange-calculator/thailand/", "target": "/military/savings/"}, {"source": "/travel/exchange-calculator/thailand/", "target": "/military/salary/"}, {"source": "/travel/exchange-calculator/thailand/", "target": "/electricity/"}, {"source": "/travel/exchange-calculator/thailand/", "target": "/travel/exchange-calculator/hongkong/"}, {"source": "/travel/exchange-calculator/thailand/", "target": "/compoundcalc/"}, {"source": "/travel/exchange-calculator/thailand/", "target": "/travel/"}, {"source": "/travel/exchange-calculator/thailand/", "target": "/military/score/"}, {"source": "/travel/exchange-calculator/thailand/", "target": "/travel/exchange-calculator/indonesia/"}, {"source": "/travel/exchange-calculator/thailand/", "target": "/tax/"}, {"source": "/travel/exchange-calculator/thailand/", "target": "/travel/exchange-calculator/taiwan/"}, {"source": "/travel/exchange-calculator/thailand/", "target": "/loan/"}, {"source": "/travel/exchange-calculator/thailand/", "target": "/travel/exchange-calculator/cambodia/"}, {"source": "/travel/exchange-calculator/thailand/", "target": "/travel/exchange-analysis/"}, {"source": "/travel/exchange-calculator/thailand/", "target": "/travel/exchange-calculator/malaysia/"}, {"source": "/travel/exchange-calculator/thailand/", "target": "/contact/"}, {"source": "/travel/exchange-calculator/thailand/", "target": "/coinmore/"}, {"source": "/travel/exchange-calculator/thailand/", "target": "/parents/"}, {"source": "/travel/exchange-calculator/thailand/", "target": "/expense/"}, {"source": "/travel/exchange-calculator/thailand/", "target": "/privacy/"}, {"source": "/travel/exchange-calculator/thailand/", "target": "/travel/exchange-calculator/myanmar/"}, {"source": "/travel/exchange-calculator/thailand/", "target": "/travel/expenses/"}, {"source": "/travel/exchange-calculator/thailand/", "target": "/"}, {"source": "/travel/exchange-calculator/vietnam/", "target": "/travel/exchange-calculator/philippines/"}, {"source": "/travel/exchange-calculator/vietnam/", "target": "/travel/exchange-calculator/laos/"}, {"source": "/travel/exchange-calculator/vietnam/", "target": "/terms/"}, {"source": "/travel/exchange-calculator/vietnam/", "target": "/about/"}, {"source": "/travel/exchange-calculator/vietnam/", "target": "/youth/"}, {"source": "/travel/exchange-calculator/vietnam/", "target": "/unemployment/"}, {"source": "/travel/exchange-calculator/vietnam/", "target": "/military/savings/"}, {"source": "/travel/exchange-calculator/vietnam/", "target": "/military/salary/"}, {"source": "/travel/exchange-calculator/vietnam/", "target": "/electricity/"}, {"source": "/travel/exchange-calculator/vietnam/", "target": "/travel/exchange-calculator/hongkong/"}, {"source": "/travel/exchange-calculator/vietnam/", "target": "/compoundcalc/"}, {"source": "/travel/exchange-calculator/vietnam/", "target": "/travel/"}, {"source": "/travel/exchange-calculator/vietnam/", "target": "/military/score/"}, {"source": "/travel/exchange-calculator/vietnam/", "target": "/travel/exchange-calculator/indonesia/"}, {"source": "/travel/exchange-calculator/vietnam/", "target": "/tax/"}, {"source": "/travel/exchange-calculator/vietnam/", "target": "/travel/exchange-calculator/taiwan/"}, {"source": "/travel/exchange-calculator/vietnam/", "target": "/loan/"}, {"source": "/travel/exchange-calculator/vietnam/", "target": "/travel/exchange-calculator/cambodia/"}, {"source": "/travel/exchange-calculator/vietnam/", "target": "/travel/exchange-analysis/"}, {"source": "/travel/exchange-calculator/vietnam/", "target": "/travel/exchange-calculator/malaysia/"}, {"source": "/travel/exchange-calculator/vietnam/", "target": "/travel/exchange-calculator/thailand/"}, {"source": "/travel/exchange-calculator/vietnam/", "target": "/contact/"}, {"source": "/travel/exchange-calculator/vietnam/", "target": "/coinmore/"}, {"source": "/travel/exchange-calculator/vietnam/", "target": "/parents/"}, {"source": "/travel/exchange-calculator/vietnam/", "target": "/expense/"}, {"source": "/travel/exchange-calculator/vietnam/", "target": "/privacy/"}, {"source": "/travel/exchange-calculator/vietnam/", "target": "/travel/exchange-calculator/myanmar/"}, {"source": "/travel/exchange-calculator/vietnam/", "target": "/travel/expenses/"}, {"source": "/travel/exchange-calculator/vietnam/", "target": "/"}, {"source": "/unemployment/", "target": "/unemployment/guide/"}, {"source": "/unemployment/", "target": "/creditcalc/emergency-loan/"}, {"source": "/unemployment/", "target": "/income/"}, {"source": "/unemployment/", "target": "/travel/exchange-calculator/"}, {"source": "/unemployment/", "target": "/"}, {"source": "/unemployment/guide/", "target": "/creditcalc/emergency-loan/"}, {"source": "/unemployment/guide/", "target": "/income/"}, {"source": "/unemployment/guide/", "target": "/travel/exchange-calculator/"}, {"source": "/unemployment/guide/", "target": "/unemployment/"}, {"source": "/unemployment/guide/", "target": "/"}, {"source": "/work-income/", "target": "/"}, {"source": "/youth/", "target": "/"}], "summary": {"total_urls": 78, "edges_body": 853, "cross_links": 712, "isolated_count": 1, "top_authority": [{"url": "/", "score": 97.1, "body": 74, "name": "홈"}, {"url": "/compoundcalc/", "score": 52.1, "body": 29, "name": "복리 계산기"}, {"url": "/loan/", "score": 48.1, "body": 25, "name": "대출 계산기"}, {"url": "/travel/exchange-calculator/", "score": 46.1, "body": 23, "name": "환율 계산기 (USD)"}, {"url": "/expense/", "score": 45.1, "body": 22, "name": "비용·지출"}, {"url": "/blog/", "score": 44.1, "body": 21, "name": "블로그"}, {"url": "/tax/", "score": 44.1, "body": 21, "name": "세금 계산기"}, {"url": "/travel/expenses/", "score": 44.1, "body": 21, "name": "여행 가계부"}, {"url": "/military/savings/", "score": 43.1, "body": 20, "name": "군적금 계산기"}, {"url": "/military/salary/", "score": 42.1, "body": 19, "name": "군인월급 계산기"}], "top_hub": [{"url": "/blog/", "score": 33, "name": "블로그"}, {"url": "/travel/exchange-calculator/", "score": 30, "name": "환율 계산기 (USD)"}, {"url": "/travel/exchange-calculator/cambodia/", "score": 30, "name": "캄보디아"}, {"url": "/travel/exchange-calculator/hongkong/", "score": 30, "name": "홍콩"}, {"url": "/travel/exchange-calculator/indonesia/", "score": 30, "name": "인도네시아"}, {"url": "/travel/exchange-calculator/laos/", "score": 30, "name": "라오스"}, {"url": "/travel/exchange-calculator/malaysia/", "score": 30, "name": "말레이시아"}, {"url": "/travel/exchange-calculator/myanmar/", "score": 30, "name": "미얀마"}, {"url": "/travel/exchange-calculator/philippines/", "score": 30, "name": "필리핀"}, {"url": "/travel/exchange-calculator/taiwan/", "score": 30, "name": "대만"}], "isolated": [{"url": "/travel/expenses/ticket/", "name": "여행 지출 공유 (티켓)"}], "strong_cited": [{"url": "/", "count": 74, "name": "홈"}, {"url": "/compoundcalc/", "count": 29, "name": "복리 계산기"}, {"url": "/loan/", "count": 25, "name": "대출 계산기"}, {"url": "/travel/exchange-calculator/", "count": 23, "name": "환율 계산기 (USD)"}, {"url": "/expense/", "count": 22, "name": "비용·지출"}, {"url": "/blog/", "count": 21, "name": "블로그"}, {"url": "/tax/", "count": 21, "name": "세금 계산기"}, {"url": "/travel/expenses/", "count": 21, "name": "여행 가계부"}, {"url": "/military/savings/", "count": 20, "name": "군적금 계산기"}, {"url": "/military/salary/", "count": 19, "name": "군인월급 계산기"}, {"url": "/parents/", "count": 19, "name": "부모급여 계산기"}, {"url": "/travel/exchange-analysis/", "count": 19, "name": "환전 분석기"}, {"url": "/military/score/", "count": 18, "name": "공군 점수 계산기"}, {"url": "/travel/", "count": 18, "name": "여행 비용 플래너"}, {"url": "/unemployment/", "count": 18, "name": "실업급여 계산기"}, {"url": "/coinmore/", "count": 16, "name": "코인 물타기 계산기"}, {"url": "/additionaltax/supply-calc/", "count": 14, "name": "공급가액 계산기"}, {"url": "/electricity/", "count": 14, "name": "전기요금 계산기"}, {"url": "/youth/", "count": 13, "name": "청년수당"}, {"url": "/about/", "count": 12, "name": "소개"}, {"url": "/asset/", "count": 12, "name": "자산·투자"}, {"url": "/compoundcalc/regular-saving/", "count": 12, "name": "적립식 복리"}, {"url": "/contact/", "count": 12, "name": "문의"}, {"url": "/income/", "count": 12, "name": "소득·보장"}, {"url": "/privacy/", "count": 12, "name": "개인정보"}, {"url": "/terms/", "count": 12, "name": "약관"}, {"url": "/compoundcalc/goal100m/", "count": 11, "name": "1억 모으기"}, {"url": "/creditcalc/step-loan/", "count": 11, "name": "체증식 대출 계산기"}, {"url": "/travel/exchange-calculator/cambodia/", "count": 11, "name": "캄보디아"}, {"url": "/travel/exchange-calculator/hongkong/", "count": 11, "name": "홍콩"}, {"url": "/travel/exchange-calculator/indonesia/", "count": 11, "name": "인도네시아"}, {"url": "/travel/exchange-calculator/laos/", "count": 11, "name": "라오스"}, {"url": "/travel/exchange-calculator/malaysia/", "count": 11, "name": "말레이시아"}, {"url": "/travel/exchange-calculator/myanmar/", "count": 11, "name": "미얀마"}, {"url": "/travel/exchange-calculator/philippines/", "count": 11, "name": "필리핀"}, {"url": "/travel/exchange-calculator/taiwan/", "count": 11, "name": "대만"}, {"url": "/travel/exchange-calculator/thailand/", "count": 11, "name": "태국"}, {"url": "/travel/exchange-calculator/vietnam/", "count": 11, "name": "베트남"}, {"url": "/additionaltax/simple-tax-check/", "count": 10, "name": "간이과세자 확인"}, {"url": "/creditcalc/prepay-calc/", "count": 10, "name": "중도상환수수료 계산기"}, {"url": "/compoundcalc/lump-sum/", "count": 9, "name": "거치식 복리"}, {"url": "/compoundcalc/rates/", "count": 9, "name": "실시간 금리"}, {"url": "/additionaltax/batch-vat-calc/", "count": 8, "name": "부가세 계산기"}, {"url": "/compoundcalc/lumpvsregular/", "count": 8, "name": "거치 vs 적립"}, {"url": "/blog/additionaltax/vat-1/", "count": 6, "name": "vat-1"}, {"url": "/blog/additionaltax/vat-2/", "count": 6, "name": "vat-2"}, {"url": "/blog/additionaltax/vat-3/", "count": 6, "name": "vat-3"}, {"url": "/blog/additionaltax/vat-4/", "count": 6, "name": "vat-4"}, {"url": "/blog/additionaltax/vat-5/", "count": 6, "name": "vat-5"}, {"url": "/blog/atm-guide-2026/", "count": 6, "name": "atm-guide-2026"}, {"url": "/blog/dcc-block-2026/", "count": 6, "name": "dcc-block-2026"}, {"url": "/blog/exchange-compare-2026/", "count": 6, "name": "exchange-compare-2026"}, {"url": "/blog/jeonse-insurance-2026/", "count": 6, "name": "jeonse-insurance-2026"}, {"url": "/blog/jeonse-loan-2026/", "count": 6, "name": "jeonse-loan-2026"}, {"url": "/blog/newlywed-baby-loan-2026/", "count": 6, "name": "newlywed-baby-loan-2026"}, {"url": "/blog/payment-strategy-2026/", "count": 6, "name": "payment-strategy-2026"}, {"url": "/blog/policy-mortgage-2025/", "count": 6, "name": "policy-mortgage-2025"}, {"url": "/blog/re-exchange-2026/", "count": 6, "name": "re-exchange-2026"}, {"url": "/blog/step-loan-2025/", "count": 6, "name": "step-loan-2025"}, {"url": "/creditcalc/emergency-loan/", "count": 6, "name": "비상금대출 계산기"}, {"url": "/blog/savings-deposit-2026/", "count": 5, "name": "savings-deposit-2026"}, {"url": "/childcare/", "count": 5, "name": "출산·육아"}, {"url": "/tax-account/", "count": 5, "name": "절세계좌"}, {"url": "/tax-account/compare/", "count": 5, "name": "절세계좌 비교"}], "external_top": [{"domain": "https://www.law.go.kr", "count": 161}, {"domain": "https://www.nts.go.kr", "count": 101}, {"domain": "https://www.hometax.go.kr", "count": 40}, {"domain": "https://finlife.fss.or.kr", "count": 17}, {"domain": "https://www.exchangerate-api.com", "count": 12}, {"domain": "https://www.hf.go.kr", "count": 11}, {"domain": "https://portal.kfb.or.kr", "count": 10}, {"domain": "https://www.gov.kr", "count": 9}, {"domain": "https://www.fsb.or.kr", "count": 9}, {"domain": "https://www.bokjiro.go.kr", "count": 9}, {"domain": "https://www.khug.or.kr", "count": 8}, {"domain": "https://www.mma.go.kr", "count": 8}], "inbound_backlinks": [{"domain": "naver.com", "links": 67, "targets": 9}, {"domain": "kjclub.com", "links": 39, "targets": 1}, {"domain": "dev.to", "links": 4, "targets": 2}, {"domain": "govinfo-tip.com", "links": 2, "targets": 1}, {"domain": "thewordcracker.com", "links": 2, "targets": 2}, {"domain": "tistory.com", "links": 2, "targets": 2}, {"domain": "dcinside.com", "links": 1, "targets": 1}, {"domain": "healthall.kr", "links": 1, "targets": 1}, {"domain": "kosmos101.com", "links": 1, "targets": 1}, {"domain": "twstalker.com", "links": 1, "targets": 1}, {"domain": "velog.io", "links": 1, "targets": 1}, {"domain": "winevisionshop.kr", "links": 1, "targets": 1}], "inbound_total_links": 122, "inbound_total_domains": 12, "inbound_pages": [{"url": "/blog/military-salary-2025/", "name": "military-salary-2025", "links": 39, "sites": 1}, {"url": "/unemployment/", "name": "실업급여 계산기", "links": 16, "sites": 2}, {"url": "/coinmore/", "name": "코인 물타기 계산기", "links": 15, "sites": 2}, {"url": "/electricity/", "name": "전기요금 계산기", "links": 13, "sites": 1}, {"url": "/compoundcalc/regular-saving/", "name": "적립식 복리", "links": 9, "sites": 1}, {"url": "/military/savings/", "name": "군적금 계산기", "links": 8, "sites": 1}, {"url": "/", "name": "홈", "links": 4, "sites": 3}, {"url": "/unemployment/guide/", "name": "실업급여 가이드", "links": 4, "sites": 1}, {"url": "/travel/exchange-calculator/", "name": "환율 계산기 (USD)", "links": 3, "sites": 2}, {"url": "/familycare/", "name": "가족돌봄수당", "links": 2, "sites": 1}, {"url": "/military/score/", "name": "공군 점수 계산기", "links": 2, "sites": 1}, {"url": "/additionaltax/batch-vat-calc/", "name": "부가세 계산기", "links": 1, "sites": 1}, {"url": "/additionaltax/supply-calc/", "name": "공급가액 계산기", "links": 1, "sites": 1}, {"url": "/blog/additionaltax/vat-3/", "name": "vat-3", "links": 1, "sites": 1}, {"url": "/blog/policy-mortgage-2025/", "name": "policy-mortgage-2025", "links": 1, "sites": 1}, {"url": "/creditcalc/emergency-loan/", "name": "비상금대출 계산기", "links": 1, "sites": 1}, {"url": "/military/salary/", "name": "군인월급 계산기", "links": 1, "sites": 1}, {"url": "/parents/", "name": "부모급여 계산기", "links": 1, "sites": 1}], "top_pagerank": [{"url": "/", "name": "홈", "score": 100.0}, {"url": "/compoundcalc/", "name": "복리 계산기", "score": 41.9}, {"url": "/unemployment/", "name": "실업급여 계산기", "score": 41.3}, {"url": "/coinmore/", "name": "코인 물타기 계산기", "score": 37.7}, {"url": "/compoundcalc/regular-saving/", "name": "적립식 복리", "score": 37.2}, {"url": "/asset/", "name": "자산·투자", "score": 36.6}, {"url": "/military/savings/", "name": "군적금 계산기", "score": 34.1}, {"url": "/electricity/", "name": "전기요금 계산기", "score": 30.9}, {"url": "/income/", "name": "소득·보장", "score": 29.8}, {"url": "/expense/", "name": "비용·지출", "score": 29.5}], "top_leo": [{"url": "/compoundcalc/rates/", "name": "실시간 금리", "score": 85}, {"url": "/travel/exchange-calculator/", "name": "환율 계산기 (USD)", "score": 60}, {"url": "/parents/", "name": "부모급여 계산기", "score": 55}, {"url": "/tax-account/compare/", "name": "절세계좌 비교", "score": 55}, {"url": "/blog/atm-guide-2026/", "name": "atm-guide-2026", "score": 45}, {"url": "/blog/dcc-block-2026/", "name": "dcc-block-2026", "score": 45}, {"url": "/blog/jeonse-insurance-2026/", "name": "jeonse-insurance-2026", "score": 45}, {"url": "/blog/newlywed-baby-loan-2026/", "name": "newlywed-baby-loan-2026", "score": 45}, {"url": "/blog/payment-strategy-2026/", "name": "payment-strategy-2026", "score": 45}, {"url": "/care-allowance/", "name": "양육수당 가이드", "score": 45}]}};
+const S = DATA.summary;
+
+// KPI
+document.getElementById('k_urls').textContent = S.total_urls;
+document.getElementById('k_body').textContent = S.edges_body;
+document.getElementById('k_cross').textContent = S.cross_links;
+document.getElementById('k_iso').textContent = S.isolated_count;
+
+const COLORS = {
+  root: '#10b981',
+  hub1: '#34d399',
+  hub1_missing: '#dc2626',  // 적색 — broken
+  hub2: '#22d3ee',
+  satellite: '#f59e0b',
+  calc: '#a78bfa',
+  blog: '#f472b6',
+  legal: '#94a3b8'
+};
+
+function fillList(elId, items, render) {
+  const el = document.getElementById(elId);
+  el.innerHTML = '';
+  if (!items.length) {
+    el.innerHTML = '<li><span class="nm" style="color:#6b7280">(없음)</span></li>';
+    return;
+  }
+  for (const it of items) {
+    const li = document.createElement('li');
+    li.innerHTML = render(it);
+    li.addEventListener('click', () => focusNodeById(it.url));
+    el.appendChild(li);
+  }
+}
+fillList('list_auth', S.top_authority,
+  it => `<div><span class="nm">${it.name}</span><span class="pth">${it.url}</span></div><span class="v">${it.score}</span>`);
+fillList('list_hub', S.top_hub,
+  it => `<div><span class="nm">${it.name}</span><span class="pth">${it.url}</span></div><span class="v">${it.score}</span>`);
+fillList('list_iso', S.isolated,
+  it => `<div><span class="nm">${it.name}</span><span class="pth">${it.url}</span></div>`);
+fillList('list_strong', S.strong_cited,
+  it => `<div><span class="nm">${it.name}</span><span class="pth">${it.url}</span></div><span class="v">${it.count}</span>`);
+fillList('list_ext', S.external_top,
+  it => `<div><span class="nm">${it.domain.replace(/^https?:\/\//,'')}</span></div><span class="v">${it.count}</span>`);
+
+// 외부 백링크 (in-bound, GSC) — 도메인별
+const inboundList = document.getElementById('list_inbound');
+const inboundTotal = document.getElementById('k_inbound_total');
+inboundTotal.textContent = `총 ${S.inbound_total_links}개 · ${S.inbound_total_domains}도메인`;
+if (S.inbound_backlinks && S.inbound_backlinks.length) {
+  inboundList.innerHTML = '';
+  for (const b of S.inbound_backlinks) {
+    const li = document.createElement('li');
+    li.innerHTML = `<div><span class="nm">${b.domain}</span><span class="pth">${b.targets}개 타겟</span></div><span class="v">${b.links}</span>`;
+    inboundList.appendChild(li);
+  }
+} else {
+  inboundList.innerHTML = '<li><span class="nm" style="color:#6b7280">(GSC export 없음)</span></li>';
+}
+
+// 외부 백링크 받는 페이지 TOP
+fillList('list_inbound_pages', S.inbound_pages || [],
+  it => `<div><span class="nm">${it.name}</span><span class="pth">${it.url} · ${it.sites}사이트</span></div><span class="v">${it.links}</span>`);
+
+// Google PR TOP 10
+fillList('list_pr', S.top_pagerank || [],
+  it => `<div><span class="nm">${it.name}</span><span class="pth">${it.url}</span></div><span class="v">${it.score}</span>`);
+
+// LEO Readiness TOP 10
+fillList('list_leo', S.top_leo || [],
+  it => `<div><span class="nm">${it.name}</span><span class="pth">${it.url}</span></div><span class="v">${it.score}</span>`);
+
+// ---------- Tree layout ----------
+const svgEl = document.getElementById('svg');
+let W = svgEl.clientWidth, H = svgEl.clientHeight;
+const svg = d3.select('#svg');
+const root = d3.hierarchy(DATA.tree);
+
+// 노드 크기 = PageRank (Google 효과 권한). PR 0~100 정규화 됨.
+const maxPR = d3.max(root.descendants(), d => d.data.pagerank) || 1;
+const rScale = d3.scalePow().exponent(1.3).domain([0, maxPR]).range([3, 32]);
+
+// LEO score 0~100 → 청록 후광 색 강도 (0=회색, 100=진한 청록)
+const leoOpacity = d3.scaleLinear().domain([0, 100]).range([0.0, 0.55]).clamp(true);
+
+// nodeSize[수직간격, 수평depth간격]. 큰 노드(32px)+라벨 충돌 방지 위해 수직 간격 확대.
+// separation 형제·사촌 모두 동일하게 — 같은 depth 노드들이 균일하게 정렬되도록.
+const treeLayout = d3.tree()
+  .nodeSize([34, 280])
+  .separation((a, b) => 1);
+
+// SVG defs — glow filter (외부 백링크 받는 노드 강조)
+const defs = svg.append('defs');
+const glow = defs.append('filter').attr('id', 'glow-amber')
+  .attr('x', '-50%').attr('y', '-50%').attr('width', '200%').attr('height', '200%');
+glow.append('feGaussianBlur').attr('stdDeviation', '3').attr('result', 'blur');
+const merge = glow.append('feMerge');
+merge.append('feMergeNode').attr('in', 'blur');
+merge.append('feMergeNode').attr('in', 'SourceGraphic');
+
+const gAll = svg.append('g').attr('transform', `translate(40, ${H/2})`);
+const gLinks = gAll.append('g').attr('class', 'links').attr('fill', 'none');
+const gCross = gAll.append('g').attr('class', 'cross').attr('fill', 'none');
+const gNodes = gAll.append('g').attr('class', 'nodes');
+
+const zoom = d3.zoom().scaleExtent([0.3, 4])
+  .on('zoom', ev => gAll.attr('transform', ev.transform));
+svg.call(zoom);
+
+let SHOW_CROSS_GLOBAL = false;
+let CROSS_FOCUS_ID = null;
+
+function update() {
+  treeLayout(root);
+
+  const linkGen = d3.linkHorizontal().x(d => d.y).y(d => d.x);
+
+  const allLinks = root.links();
+  const lk = gLinks.selectAll('path').data(allLinks, d => d.target.data.id);
+  lk.exit().remove();
+  const lkEnter = lk.enter().append('path')
+    .attr('fill', 'none');
+  lkEnter.merge(lk)
+    .attr('stroke', d => {
+      // /asset/ broken 으로 향하거나 그 자식 라인은 점선 적색 톤
+      if (d.target.data.group === 'hub1_missing' ||
+          d.source.data.group === 'hub1_missing') return '#dc2626';
+      return '#2a2a2a';
+    })
+    .attr('stroke-width', d => 0.6 + (3 - d.target.depth) * 0.3)
+    .attr('stroke-opacity', d => {
+      if (d.target.data.group === 'hub1_missing' ||
+          d.source.data.group === 'hub1_missing') return 0.55;
+      return 0.8;
+    })
+    .attr('stroke-dasharray', d => {
+      if (d.target.data.group === 'hub1_missing' ||
+          d.source.data.group === 'hub1_missing') return '4,3';
+      return null;
+    })
+    .attr('d', linkGen);
+
+  // 노드
+  const nd = gNodes.selectAll('g.node').data(root.descendants(), d => d.data.id);
+  nd.exit().remove();
+  const ndEnter = nd.enter().append('g').attr('class', 'node')
+    .style('cursor', 'pointer');
+
+  // 외부 백링크 ring (별도 outer circle) — 본 circle 보다 먼저 append → 뒤에 깔리도록
+  ndEnter.append('circle').attr('class', 'backlink-ring');
+  ndEnter.append('circle');
+  ndEnter.append('text');
+
+  const ndAll = ndEnter.merge(nd);
+  ndAll.attr('transform', d => `translate(${d.y},${d.x})`)
+    .attr('data-id', d => d.data.id);
+
+  // Outer ring: 외부 백링크 받는 노드만 노란 후광 + glow filter
+  ndAll.select('circle.backlink-ring')
+    .attr('r', d => {
+      if (!d.data.inbound_links) return 0;
+      const baseR = rScale(d.data.pagerank) * (d.data.group === 'root' ? 1.5 : 1);
+      // 백링크 수에 따라 ring 반지름 확장 (3~12px 추가)
+      const extra = Math.min(3 + Math.log10(d.data.inbound_links + 1) * 4, 12);
+      return baseR + extra;
+    })
+    .attr('fill', '#fbbf24')
+    .attr('fill-opacity', d => {
+      if (!d.data.inbound_links) return 0;
+      // 백링크 많으면 더 진하게
+      return Math.min(0.18 + Math.log10(d.data.inbound_links + 1) * 0.12, 0.55);
+    })
+    .attr('stroke', '#fbbf24')
+    .attr('stroke-width', d => d.data.inbound_links > 0 ? 1.5 : 0)
+    .attr('stroke-opacity', 0.9)
+    .attr('filter', d => d.data.inbound_links > 0 ? 'url(#glow-amber)' : null);
+
+  // 본 노드 circle
+  // stroke 색·두께 = LEO score (회색 #2a2a2a → 청록 #14b8a6 그라데이션)
+  const leoColor = d3.interpolateRgb('#2a2a2a', '#14b8a6');
+  ndAll.select('circle:not(.backlink-ring)')
+    .attr('r', d => rScale(d.data.pagerank) * (d.data.group === 'root' ? 1.5 : 1))
+    .attr('fill', d => d.data.group === 'hub1_missing' ? 'transparent' : (COLORS[d.data.group] || '#94a3b8'))
+    .attr('fill-opacity', d => d._collapsed ? 0.5 : 0.9)
+    .attr('stroke', d => {
+      if (d.data.group === 'hub1_missing') return '#dc2626';
+      if (d._collapsed) return '#10b981';
+      // LEO score 0 → 어두움, 100 → 청록 #14b8a6
+      const leo = d.data.leo_score || 0;
+      if (leo === 0) return '#0a0a0a';
+      return leoColor(leo / 100);
+    })
+    .attr('stroke-width', d => {
+      if (d.data.group === 'hub1_missing') return 2;
+      if (d._collapsed) return 1.5;
+      // LEO 비례 stroke 두께: 0 → 1.2, 100 → 5
+      const leo = d.data.leo_score || 0;
+      return 1.2 + leo / 26;
+    })
+    .attr('stroke-dasharray', d => d.data.group === 'hub1_missing' ? '3,2' : null);
+
+  ndAll.select('text')
+    .attr('dx', d => {
+      // 노드 반지름 + 6px padding. 큰 노드(32px)도 라벨 안 가리게.
+      const r = rScale(d.data.pagerank) * (d.data.group === 'root' ? 1.5 : 1);
+      const isInternal = (d.children || d._children) && d.depth > 0;
+      return isInternal ? -(r + 6) : (r + 6);
+    })
+    .attr('text-anchor', d => (d.children || d._children) && d.depth > 0 ? 'end' : 'start')
+    .attr('dy', 4)
+    // 텍스트 외곽선 — 링크/타 노드 위에 라벨이 명확히 보이게
+    .attr('paint-order', 'stroke')
+    .attr('stroke', '#0a0a0a')
+    .attr('stroke-width', 3)
+    .attr('stroke-opacity', 0.85)
+    .attr('font-size', d => {
+      if (d.depth === 0) return 18;
+      if (d.depth === 1) return 15;
+      // PR 기반 (정규화 0~100)
+      if (d.data.pagerank >= 30) return 14;
+      if (d.data.pagerank >= 15) return 13;
+      if (d.data.pagerank >= 5) return 12;
+      return 11;
+    })
+    .attr('font-weight', d => d.depth <= 1 ? 600 : 400)
+    .attr('fill', d => {
+      if (d.data.group === 'hub1_missing') return '#dc2626';
+      if (d.depth === 0) return '#10b981';
+      if (d.data.in_body >= 5) return '#e8e8e8';
+      return '#9aa0a6';
+    })
+    .text(d => {
+      const lbl = d.data.name;
+      const cnt = d.data.in_body;
+      return cnt > 0 ? `${lbl} · ${cnt}` : lbl;
+    });
+
+  ndAll.on('mouseenter', (ev, d) => showTip(ev, d))
+       .on('mousemove', moveTip)
+       .on('mouseleave', hideTip)
+       .on('click', (ev, d) => {
+         ev.stopPropagation();
+         CROSS_FOCUS_ID = (CROSS_FOCUS_ID === d.data.id) ? null : d.data.id;
+         drawCrossLinks();
+       })
+       .on('dblclick', (ev, d) => {
+         ev.stopPropagation();
+         toggleCollapse(d);
+         update();
+       });
+
+  drawCrossLinks();
+}
+
+function toggleCollapse(d) {
+  if (d.children) {
+    d._children = d.children;
+    d.children = null;
+    d._collapsed = true;
+  } else if (d._children) {
+    d.children = d._children;
+    d._children = null;
+    d._collapsed = false;
+  }
+}
+
+function drawCrossLinks() {
+  const pos = new Map();
+  root.descendants().forEach(d => pos.set(d.data.id, {x: d.x, y: d.y}));
+
+  let toDraw = [];
+  if (SHOW_CROSS_GLOBAL) {
+    toDraw = DATA.cross_links;
+  } else if (CROSS_FOCUS_ID) {
+    toDraw = DATA.cross_links.filter(e => e.source === CROSS_FOCUS_ID || e.target === CROSS_FOCUS_ID);
+  }
+
+  const visible = new Set(root.descendants().map(d => d.data.id));
+  toDraw = toDraw.filter(e => visible.has(e.source) && visible.has(e.target));
+
+  const cl = gCross.selectAll('path').data(toDraw, d => d.source + '→' + d.target);
+  cl.exit().remove();
+  const clEnter = cl.enter().append('path')
+    .attr('fill', 'none')
+    .attr('stroke-width', 1.2)
+    .attr('stroke-opacity', 0.7);
+  clEnter.merge(cl)
+    .attr('stroke', d => {
+      if (CROSS_FOCUS_ID === d.target) return '#22d3ee';
+      if (CROSS_FOCUS_ID === d.source) return '#10b981';
+      return '#10b981';
+    })
+    .attr('stroke-opacity', d => CROSS_FOCUS_ID ? 0.85 : 0.18)
+    .attr('stroke-width', d => CROSS_FOCUS_ID ? 1.6 : 0.7)
+    .attr('d', d => {
+      const a = pos.get(d.source), b = pos.get(d.target);
+      if (!a || !b) return '';
+      const mx = (a.y + b.y) / 2;
+      return `M${a.y},${a.x} C${mx},${a.x} ${mx},${b.x} ${b.y},${b.x}`;
+    });
+
+  if (CROSS_FOCUS_ID) {
+    const linked = new Set([CROSS_FOCUS_ID]);
+    DATA.cross_links.forEach(e => {
+      if (e.source === CROSS_FOCUS_ID) linked.add(e.target);
+      if (e.target === CROSS_FOCUS_ID) linked.add(e.source);
+    });
+    gNodes.selectAll('g.node').select('circle')
+      .attr('fill-opacity', d => linked.has(d.data.id) ? 1 : 0.18);
+    gNodes.selectAll('g.node').select('text')
+      .attr('opacity', d => linked.has(d.data.id) ? 1 : 0.25);
+  } else {
+    gNodes.selectAll('g.node').select('circle')
+      .attr('fill-opacity', d => d._collapsed ? 0.5 : 0.9);
+    gNodes.selectAll('g.node').select('text').attr('opacity', 1);
+  }
+}
+
+const tip = document.getElementById('tip');
+function showTip(ev, d) {
+  tip.style.opacity = 1;
+  const dat = d.data;
+  const broken = dat.group === 'hub1_missing'
+    ? '<span class="broken-tag">404 BROKEN</span>' : '';
+  const inboundLine = dat.inbound_links > 0
+    ? `<div class="row" style="color:#fbbf24">🔗 외부 백링크: <b>${dat.inbound_links}</b>개 (${dat.inbound_sites}사이트)</div>`
+    : '';
+  const prLine = `<div class="row" style="color:#a7f3d0">🔥 Google PR: <b>${dat.pagerank}</b>/100 <span style="color:#6b7280">(상대순위)</span></div>`;
+  const leoLine = `<div class="row" style="color:#5eead4">🤖 LEO Readiness: <b>${dat.leo_score}</b>/100</div>`;
+  tip.innerHTML = `<code>${dat.id}</code>${broken}
+    <div class="row"><b>${dat.name}</b> · ${dat.group}</div>
+    ${prLine}
+    ${leoLine}
+    ${inboundLine}
+    <div class="row" style="color:#6b7280">본문 in/out: ${dat.in_body}/${dat.out_body} · 전역: ${dat.in_global}/${dat.out_global}</div>
+    <div class="crumb">📍 ${dat.breadcrumb}</div>`;
+  moveTip(ev);
+}
+function moveTip(ev) {
+  const r = svgEl.getBoundingClientRect();
+  let x = ev.clientX - r.left + 14;
+  let y = ev.clientY - r.top + 14;
+  if (x + 360 > r.width) x = ev.clientX - r.left - 370;
+  tip.style.left = x + 'px';
+  tip.style.top = y + 'px';
+}
+function hideTip() { tip.style.opacity = 0; }
+
+document.getElementById('q').addEventListener('input', e => {
+  const q = e.target.value.toLowerCase().trim();
+  if (!q) {
+    gNodes.selectAll('g.node').select('circle').attr('fill-opacity', d => d._collapsed ? 0.5 : 0.9);
+    gNodes.selectAll('g.node').select('text').attr('opacity', 1);
+    return;
+  }
+  gNodes.selectAll('g.node').select('circle').attr('fill-opacity', d => {
+    const hit = d.data.id.toLowerCase().includes(q) || d.data.name.toLowerCase().includes(q);
+    return hit ? 1 : 0.12;
+  });
+  gNodes.selectAll('g.node').select('text').attr('opacity', d => {
+    const hit = d.data.id.toLowerCase().includes(q) || d.data.name.toLowerCase().includes(q);
+    return hit ? 1 : 0.18;
+  });
+});
+
+document.getElementById('btn_collapse').addEventListener('click', () => {
+  root.descendants().forEach(d => {
+    if (d.depth >= 1 && d.children) {
+      d._children = d.children;
+      d.children = null;
+      d._collapsed = true;
+    }
+  });
+  update();
+});
+document.getElementById('btn_expand').addEventListener('click', () => {
+  root.descendants().forEach(d => {
+    if (d._children) {
+      d.children = d._children;
+      d._children = null;
+      d._collapsed = false;
+    }
+  });
+  update();
+});
+document.getElementById('btn_cross').addEventListener('click', () => {
+  SHOW_CROSS_GLOBAL = !SHOW_CROSS_GLOBAL;
+  document.getElementById('btn_cross').classList.toggle('active', SHOW_CROSS_GLOBAL);
+  drawCrossLinks();
+});
+document.getElementById('btn_reset').addEventListener('click', () => {
+  CROSS_FOCUS_ID = null;
+  svg.transition().duration(400).call(zoom.transform,
+    d3.zoomIdentity.translate(40, H/2));
+  drawCrossLinks();
+});
+
+function focusNodeById(id) {
+  const target = root.descendants().find(d => d.data.id === id);
+  if (!target) return;
+  CROSS_FOCUS_ID = id;
+  drawCrossLinks();
+  const k = 1.2;
+  svg.transition().duration(500).call(zoom.transform,
+    d3.zoomIdentity.translate(W/2 - target.y * k, H/2 - target.x * k).scale(k));
+}
+
+svg.on('click', () => {
+  if (CROSS_FOCUS_ID) {
+    CROSS_FOCUS_ID = null;
+    drawCrossLinks();
+  }
+});
+
+window.addEventListener('resize', () => {
+  W = svgEl.clientWidth; H = svgEl.clientHeight;
+});
+
+update();
+svg.call(zoom.transform, d3.zoomIdentity.translate(40, H/2).scale(1));
+</script>
+</body>
+</html>

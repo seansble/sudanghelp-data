@@ -80,6 +80,27 @@ a { color: inherit; text-decoration: none; }
 }
 .hd-meta .now { color: var(--text-2); display: block; margin-bottom: 2px; }
 
+/* ========== Nav tabs ========== */
+.nav-tabs {
+  display: flex;
+  gap: 16px;
+  margin-top: 10px;
+  font-size: 12px;
+  letter-spacing: 0.02em;
+}
+.nav-tabs a {
+  color: var(--text-3);
+  padding: 4px 0;
+  border-bottom: 1px solid transparent;
+  transition: color 0.15s, border-color 0.15s;
+}
+.nav-tabs a:hover { color: var(--text-2); }
+.nav-tabs a.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+  font-weight: 500;
+}
+
 /* ========== Verdict bar ========== */
 .verdict {
   display: flex;
@@ -381,7 +402,11 @@ a { color: inherit; text-decoration: none; }
   <header class="hd">
     <div>
       <div class="hd-title">sudanghelp<span class="accent">-data</span></div>
-      <div class="hd-sub">operational monitor · cron · worker · kv</div>
+      <div class="hd-sub">ops monitor + IA 시각화</div>
+      <nav class="nav-tabs">
+        <a href="./" class="active">운영 모니터</a>
+        <a href="./link-map.html">Site Link Map</a>
+      </nav>
     </div>
     <div class="hd-meta">
       <span class="now" id="now-ts">—</span>
