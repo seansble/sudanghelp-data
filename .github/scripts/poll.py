@@ -71,7 +71,7 @@ GROUPS: dict = {
         "sources": {
             "rates": {
                 "label": "정기예금·적금 금리 비교",
-                "page_label": "금리 비교 페이지",
+                "page_label": "정기예금 적금 실시간 금리 비교",
                 "tech_context": "GH Actions (Sudanghelp/update-rates.yml) · 금감원 FSS OpenAPI → 정적 JSON",
                 "data_label": "FSS 예적금 금리 일일 공시",
                 "url": "https://sudanghelp.co.kr/compoundcalc/rates/rates.json",
@@ -83,7 +83,7 @@ GROUPS: dict = {
             },
             "promos": {
                 "label": "정기예금·적금 SNS 특판",
-                "page_label": "금리 비교 페이지 · SNS 특판 탭",
+                "page_label": "SNS 정기예금 적금 특판 금리 비교",
                 "tech_context": "GH Actions (Sudanghelp/update-rates.yml) · 네이버 블로그 + 카카오맵 → 정적 JSON",
                 "data_label": "SNS 적금 특판 (블로거 교차검증)",
                 "url": "https://sudanghelp.co.kr/compoundcalc/rates/featured_promos.json",
@@ -146,7 +146,7 @@ GROUPS: dict = {
         "sources": {
             "feedback": {
                 "label": "여행 페이지 피드백 (리뷰·좋아요)",
-                "page_label": "여행 페이지 전반 · 피드백 위젯",
+                "page_label": "여행 비용 플래너 피드백",
                 "tech_context": "Cloudflare Worker · sudanghelpfeedback (KV)",
                 "data_label": "리뷰 · 좋아요/싫어요 · 조회수",
                 "url": "https://sudanghelpfeedback.sehwan4696.workers.dev/api/stats",
