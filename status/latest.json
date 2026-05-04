@@ -1,6 +1,6 @@
 {
   "schema_version": 4,
-  "checked_at": "2026-05-04T14:59:51.170232Z",
+  "checked_at": "2026-05-04T16:45:21.127208Z",
   "groups": {
     "daily": {
       "label": "하루 단위 갱신",
@@ -26,7 +26,7 @@
             "time_status": "ok",
             "updated_at": "2026-05-04T04:06:46.133359+00:00",
             "updated_at_raw": "2026-05-04T13:06:46.133359+09:00",
-            "age_min": 653,
+            "age_min": 758,
             "fallback": true
           },
           "delta": {
@@ -48,7 +48,7 @@
             "run_id": 25300477804,
             "run_url": "https://github.com/seansble/Sudanghelp/actions/runs/25300477804",
             "started_at": "2026-05-04T04:06:21Z",
-            "age_min": 653
+            "age_min": 759
           }
         },
         "promos": {
@@ -68,7 +68,7 @@
             "time_status": "ok",
             "updated_at": "2026-05-04T04:07:00+00:00",
             "updated_at_raw": "2026-05-04 13:07 KST",
-            "age_min": 652,
+            "age_min": 758,
             "fallback": true
           },
           "delta": {
@@ -90,7 +90,7 @@
             "run_id": 25300477804,
             "run_url": "https://github.com/seansble/Sudanghelp/actions/runs/25300477804",
             "started_at": "2026-05-04T04:06:21Z",
-            "age_min": 653
+            "age_min": 759
           }
         },
         "exchange-snapshot": {
@@ -98,24 +98,24 @@
           "page_label": "여행 가계부",
           "tech_context": "Cloudflare Worker · sudanghelp-rates 일일 KV 스냅샷",
           "data_label": "오늘 KST 날짜의 환율 스냅샷 (49 통화)",
-          "url": "https://sudanghelp-rates.sehwan4696.workers.dev/rates/2026-05-04",
+          "url": "https://sudanghelp-rates.sehwan4696.workers.dev/rates/2026-05-05",
           "page_url": "https://sudanghelp.co.kr/travel/expenses/",
           "status": "ok",
           "metrics": {
             "items": 49,
-            "size_bytes": 780,
-            "hash": "5031fbe9f0e51e53c9bafa4ed558a8d96a3ccfa7c8aba55b29adc7d554f3dc4d"
+            "size_bytes": 905,
+            "hash": "903ec3c2ef288ea52b75946f17584fc85881b0ca6ac83ba9aec6c06d6676d9e5"
           },
           "freshness": {
             "time_status": "ok",
-            "updated_at": "2026-05-04T00:01:02.542000+00:00",
-            "updated_at_raw": "2026-05-04T00:01:02.542Z",
-            "age_min": 898,
-            "fallback": true
+            "updated_at": "2026-05-04T16:01:09.063000+00:00",
+            "updated_at_raw": "2026-05-04T16:01:09.063Z",
+            "age_min": 44,
+            "fallback": false
           },
           "delta": {
             "items": 0,
-            "size_bytes": -117,
+            "size_bytes": 8,
             "hash_changed": true,
             "changed_vs_yesterday": true,
             "compared_to": "yesterday"
@@ -144,8 +144,8 @@
             "time_status": "ok",
             "updated_at": "2026-05-04T14:09:36+00:00",
             "updated_at_raw": "2026-05-04 23:09:36",
-            "age_min": 50,
-            "fallback": false
+            "age_min": 155,
+            "fallback": true
           },
           "delta": {
             "items": 0,
@@ -180,19 +180,19 @@
           "status": "ok",
           "metrics": {
             "items": 49,
-            "size_bytes": 1139,
-            "hash": "b0cb8a5e7887f49a3a9c2bf9cf4be266497394823c6ae7ef45d4f287f9a917f7"
+            "size_bytes": 1113,
+            "hash": "9093373282e1404b45906001fc90091978475216538dc90fc5663e79f85e1226"
           },
           "freshness": {
             "time_status": "ok",
-            "updated_at": "2026-05-04T14:01:01.100000+00:00",
-            "updated_at_raw": "2026-05-04T14:01:01.100Z",
-            "age_min": 58,
+            "updated_at": "2026-05-04T16:01:09.063000+00:00",
+            "updated_at_raw": "2026-05-04T16:01:09.063Z",
+            "age_min": 44,
             "fallback": false
           },
           "delta": {
             "items": 0,
-            "size_bytes": 34,
+            "size_bytes": 8,
             "hash_changed": true,
             "changed_vs_yesterday": true,
             "compared_to": "yesterday"
