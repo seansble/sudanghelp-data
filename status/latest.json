@@ -1,6 +1,6 @@
 {
   "schema_version": 4,
-  "checked_at": "2026-05-16T12:50:38.010153Z",
+  "checked_at": "2026-05-16T14:16:07.087484Z",
   "groups": {
     "daily": {
       "label": "하루 단위 갱신",
@@ -26,7 +26,7 @@
             "time_status": "ok",
             "updated_at": "2026-05-16T03:58:29.875528+00:00",
             "updated_at_raw": "2026-05-16T12:58:29.875528+09:00",
-            "age_min": 532,
+            "age_min": 617,
             "fallback": true
           },
           "delta": {
@@ -48,7 +48,7 @@
             "run_id": 25952168562,
             "run_url": "https://github.com/seansble/Sudanghelp/actions/runs/25952168562",
             "started_at": "2026-05-16T03:58:06Z",
-            "age_min": 532
+            "age_min": 618
           }
         },
         "promos": {
@@ -68,7 +68,7 @@
             "time_status": "ok",
             "updated_at": "2026-05-16T03:58:00+00:00",
             "updated_at_raw": "2026-05-16 12:58 KST",
-            "age_min": 532,
+            "age_min": 618,
             "fallback": true
           },
           "delta": {
@@ -90,7 +90,7 @@
             "run_id": 25952168562,
             "run_url": "https://github.com/seansble/Sudanghelp/actions/runs/25952168562",
             "started_at": "2026-05-16T03:58:06Z",
-            "age_min": 532
+            "age_min": 618
           }
         },
         "exchange-snapshot": {
@@ -110,7 +110,7 @@
             "time_status": "ok",
             "updated_at": "2026-05-16T00:00:46.921000+00:00",
             "updated_at_raw": "2026-05-16T00:00:46.921Z",
-            "age_min": 769,
+            "age_min": 855,
             "fallback": true
           },
           "delta": {
@@ -138,14 +138,14 @@
           "metrics": {
             "items": 73,
             "size_bytes": 15776,
-            "hash": "e11e2ba255c8838b72f1ef54231e35092d16b394df0bdab1795406c385d7f545"
+            "hash": "4510b180695803b197520dcdfe7ca6b7482290d7db7be5aa61c470a3fdce23d1"
           },
           "freshness": {
             "time_status": "ok",
-            "updated_at": "2026-05-16T11:04:16+00:00",
-            "updated_at_raw": "2026-05-16 20:04:16",
-            "age_min": 106,
-            "fallback": true
+            "updated_at": "2026-05-16T13:39:07+00:00",
+            "updated_at_raw": "2026-05-16 22:39:07",
+            "age_min": 37,
+            "fallback": false
           },
           "delta": {
             "items": 0,
@@ -181,13 +181,13 @@
           "metrics": {
             "items": 49,
             "size_bytes": 1100,
-            "hash": "87bdd4e6c7c8318eb5cbed89e8b2522eb20d2a5cf9da5b107d08f1e18e750c62"
+            "hash": "1fc5033a86b2905794efab72be10daeeaae00b50f38192728b168c2cdd765c88"
           },
           "freshness": {
             "time_status": "ok",
-            "updated_at": "2026-05-16T12:00:48.399000+00:00",
-            "updated_at_raw": "2026-05-16T12:00:48.399Z",
-            "age_min": 49,
+            "updated_at": "2026-05-16T14:00:45.793000+00:00",
+            "updated_at_raw": "2026-05-16T14:00:45.793Z",
+            "age_min": 15,
             "fallback": false
           },
           "delta": {
@@ -222,19 +222,19 @@
           "page_url": "https://sudanghelp.co.kr/travel/",
           "status": "ok",
           "metrics": {
-            "items": 1121,
+            "items": 1122,
             "size_bytes": 38,
-            "hash": "43c493072f5cd09b7e696b06d49a4d26ba02ee749ed660430267c09acd50e807"
+            "hash": "d178d6adc4d2ab1fb54657470627723125d8e29f7b3603ea8b8b8067fb4a8e10"
           },
           "freshness": {
             "time_status": "ok",
             "updated_at": "",
             "updated_at_raw": "",
             "age_min": null,
-            "fallback": true
+            "fallback": false
           },
           "delta": {
-            "items": 1,
+            "items": 2,
             "size_bytes": 0,
             "hash_changed": true,
             "changed_vs_yesterday": true,
@@ -244,7 +244,7 @@
           "content": {
             "status": "ok",
             "reason": null,
-            "items": 1121
+            "items": 1122
           }
         }
       }
