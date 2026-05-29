@@ -1,6 +1,6 @@
 {
   "schema_version": 4,
-  "checked_at": "2026-05-29T10:35:41.109433Z",
+  "checked_at": "2026-05-29T13:51:30.918858Z",
   "groups": {
     "daily": {
       "label": "하루 단위 갱신",
@@ -26,7 +26,7 @@
             "time_status": "ok",
             "updated_at": "2026-05-29T04:40:16.416470+00:00",
             "updated_at_raw": "2026-05-29T13:40:16.416470+09:00",
-            "age_min": 355,
+            "age_min": 551,
             "fallback": true
           },
           "delta": {
@@ -48,7 +48,7 @@
             "run_id": 26618337073,
             "run_url": "https://github.com/seansble/Sudanghelp/actions/runs/26618337073",
             "started_at": "2026-05-29T04:39:51Z",
-            "age_min": 355
+            "age_min": 551
           }
         },
         "promos": {
@@ -68,7 +68,7 @@
             "time_status": "ok",
             "updated_at": "2026-05-29T04:40:00+00:00",
             "updated_at_raw": "2026-05-29 13:40 KST",
-            "age_min": 355,
+            "age_min": 551,
             "fallback": true
           },
           "delta": {
@@ -90,7 +90,7 @@
             "run_id": 26618337073,
             "run_url": "https://github.com/seansble/Sudanghelp/actions/runs/26618337073",
             "started_at": "2026-05-29T04:39:51Z",
-            "age_min": 355
+            "age_min": 551
           }
         },
         "exchange-snapshot": {
@@ -110,7 +110,7 @@
             "time_status": "ok",
             "updated_at": "2026-05-29T00:00:11.323000+00:00",
             "updated_at_raw": "2026-05-29T00:00:11.323Z",
-            "age_min": 635,
+            "age_min": 831,
             "fallback": true
           },
           "delta": {
@@ -138,13 +138,13 @@
           "metrics": {
             "items": 73,
             "size_bytes": 15842,
-            "hash": "c4135aa213be7b8a68f865fc357d5539d60492d46803f6aa634f1ca3dda1afca"
+            "hash": "ea940192fcdaabe83832eef0f2bbf8b6f0d9b5c4cf2b441a8fe3fd7c93955893"
           },
           "freshness": {
             "time_status": "ok",
-            "updated_at": "2026-05-29T08:04:35+00:00",
-            "updated_at_raw": "2026-05-29 17:04:35",
-            "age_min": 151,
+            "updated_at": "2026-05-29T12:17:49+00:00",
+            "updated_at_raw": "2026-05-29 21:17:49",
+            "age_min": 93,
             "fallback": false
           },
           "delta": {
@@ -180,19 +180,19 @@
           "status": "ok",
           "metrics": {
             "items": 49,
-            "size_bytes": 1121,
-            "hash": "5188f1005490cd8b98a4be4b434851ec97a4f843a6db540d92c7d4bbb02b2b11"
+            "size_bytes": 1141,
+            "hash": "885a02d7aa79e86fedc8cf11cebfbc3956dbbf2419eeb68035114a0511ca0e86"
           },
           "freshness": {
             "time_status": "ok",
-            "updated_at": "2026-05-29T10:00:02.606000+00:00",
-            "updated_at_raw": "2026-05-29T10:00:02.606Z",
-            "age_min": 35,
+            "updated_at": "2026-05-29T13:00:02.535000+00:00",
+            "updated_at_raw": "2026-05-29T13:00:02.535Z",
+            "age_min": 51,
             "fallback": false
           },
           "delta": {
             "items": 0,
-            "size_bytes": -12,
+            "size_bytes": 8,
             "hash_changed": true,
             "changed_vs_yesterday": true,
             "compared_to": "yesterday"
@@ -222,9 +222,9 @@
           "page_url": "https://sudanghelp.co.kr/travel/",
           "status": "ok",
           "metrics": {
-            "items": 1242,
+            "items": 1243,
             "size_bytes": 38,
-            "hash": "58599d79aba12cf600f5535104a4a2cb76a2a7a7375a4b01922cd7294052300b"
+            "hash": "30ca424f39c5b89db43e7c7132f8bda2bac4d8fbe786cd8f10f6d450a814a26a"
           },
           "freshness": {
             "time_status": "ok",
@@ -234,7 +234,7 @@
             "fallback": false
           },
           "delta": {
-            "items": 5,
+            "items": 6,
             "size_bytes": 0,
             "hash_changed": true,
             "changed_vs_yesterday": true,
@@ -244,7 +244,7 @@
           "content": {
             "status": "ok",
             "reason": null,
-            "items": 1242
+            "items": 1243
           }
         }
       }
