@@ -1,6 +1,6 @@
 {
   "schema_version": 4,
-  "checked_at": "2026-06-06T13:00:10.130275Z",
+  "checked_at": "2026-06-06T15:02:43.668331Z",
   "groups": {
     "daily": {
       "label": "하루 단위 갱신",
@@ -26,7 +26,7 @@
             "time_status": "ok",
             "updated_at": "2026-06-06T04:19:26.540126+00:00",
             "updated_at_raw": "2026-06-06T13:19:26.540126+09:00",
-            "age_min": 520,
+            "age_min": 643,
             "fallback": true
           },
           "delta": {
@@ -48,7 +48,7 @@
             "run_id": 27052353230,
             "run_url": "https://github.com/seansble/Sudanghelp/actions/runs/27052353230",
             "started_at": "2026-06-06T04:17:59Z",
-            "age_min": 522
+            "age_min": 644
           }
         },
         "promos": {
@@ -68,7 +68,7 @@
             "time_status": "ok",
             "updated_at": "2026-06-06T04:19:00+00:00",
             "updated_at_raw": "2026-06-06 13:19 KST",
-            "age_min": 521,
+            "age_min": 643,
             "fallback": true
           },
           "delta": {
@@ -90,7 +90,7 @@
             "run_id": 27052353230,
             "run_url": "https://github.com/seansble/Sudanghelp/actions/runs/27052353230",
             "started_at": "2026-06-06T04:17:59Z",
-            "age_min": 522
+            "age_min": 644
           }
         },
         "exchange-snapshot": {
@@ -98,24 +98,24 @@
           "page_label": "여행 가계부",
           "tech_context": "Cloudflare Worker · sudanghelp-rates 일일 KV 스냅샷",
           "data_label": "오늘 KST 날짜의 환율 스냅샷 (49 통화)",
-          "url": "https://sudanghelp-rates.sehwan4696.workers.dev/rates/2026-06-06",
+          "url": "https://sudanghelp-rates.sehwan4696.workers.dev/rates/2026-06-07",
           "page_url": "https://sudanghelp.co.kr/travel/expenses/",
           "status": "ok",
           "metrics": {
             "items": 49,
-            "size_bytes": 777,
-            "hash": "a7350ca30a3279e1750e9c7ed31c64e531d5625eb8ecf2eba7262181a19aab4e"
+            "size_bytes": 884,
+            "hash": "c872968c5f41c06a4db021f1d8235a8bb35057f32c4ab79f691cfe5af6ff6c3e"
           },
           "freshness": {
             "time_status": "ok",
-            "updated_at": "2026-06-06T00:00:18.725000+00:00",
-            "updated_at_raw": "2026-06-06T00:00:18.725Z",
-            "age_min": 779,
-            "fallback": true
+            "updated_at": "2026-06-06T15:00:21.840000+00:00",
+            "updated_at_raw": "2026-06-06T15:00:21.840Z",
+            "age_min": 2,
+            "fallback": false
           },
           "delta": {
             "items": 0,
-            "size_bytes": -116,
+            "size_bytes": -9,
             "hash_changed": true,
             "changed_vs_yesterday": true,
             "compared_to": "yesterday"
@@ -138,13 +138,13 @@
           "metrics": {
             "items": 73,
             "size_bytes": 15823,
-            "hash": "7162604f1c90327b4a43120b3a7f926ff3bce376ffb501e6053760328e260c08"
+            "hash": "c642ebf5c24db2bfa9ac48cb782bb900ee5d9ff0296d501285aff709ea87f797"
           },
           "freshness": {
             "time_status": "ok",
-            "updated_at": "2026-06-06T12:07:08+00:00",
-            "updated_at_raw": "2026-06-06 21:07:08",
-            "age_min": 53,
+            "updated_at": "2026-06-06T14:46:09+00:00",
+            "updated_at_raw": "2026-06-06 23:46:09",
+            "age_min": 16,
             "fallback": false
           },
           "delta": {
@@ -180,19 +180,19 @@
           "status": "ok",
           "metrics": {
             "items": 49,
-            "size_bytes": 1091,
-            "hash": "b15c70d102f335ecc6f0f4fef4af77cd3e1dd86d8bb5a1700aa60026952e299d"
+            "size_bytes": 1092,
+            "hash": "a91ad6c76bae9fd7829d15b5a3b91b2a0d7cf94f8926bf1f74b4d5ec5335374c"
           },
           "freshness": {
             "time_status": "ok",
-            "updated_at": "2026-06-06T12:00:21.647000+00:00",
-            "updated_at_raw": "2026-06-06T12:00:21.647Z",
-            "age_min": 59,
+            "updated_at": "2026-06-06T15:00:21.840000+00:00",
+            "updated_at_raw": "2026-06-06T15:00:21.840Z",
+            "age_min": 2,
             "fallback": false
           },
           "delta": {
             "items": 0,
-            "size_bytes": -10,
+            "size_bytes": -9,
             "hash_changed": true,
             "changed_vs_yesterday": true,
             "compared_to": "yesterday"
@@ -231,7 +231,7 @@
             "updated_at": "",
             "updated_at_raw": "",
             "age_min": null,
-            "fallback": false
+            "fallback": true
           },
           "delta": {
             "items": 7,
