@@ -1,6 +1,6 @@
 {
   "schema_version": 4,
-  "checked_at": "2026-06-06T06:17:44.462794Z",
+  "checked_at": "2026-06-06T09:14:18.734259Z",
   "groups": {
     "daily": {
       "label": "하루 단위 갱신",
@@ -26,8 +26,8 @@
             "time_status": "ok",
             "updated_at": "2026-06-06T04:19:26.540126+00:00",
             "updated_at_raw": "2026-06-06T13:19:26.540126+09:00",
-            "age_min": 118,
-            "fallback": false
+            "age_min": 294,
+            "fallback": true
           },
           "delta": {
             "items": 0,
@@ -48,7 +48,7 @@
             "run_id": 27052353230,
             "run_url": "https://github.com/seansble/Sudanghelp/actions/runs/27052353230",
             "started_at": "2026-06-06T04:17:59Z",
-            "age_min": 119
+            "age_min": 296
           }
         },
         "promos": {
@@ -68,8 +68,8 @@
             "time_status": "ok",
             "updated_at": "2026-06-06T04:19:00+00:00",
             "updated_at_raw": "2026-06-06 13:19 KST",
-            "age_min": 118,
-            "fallback": false
+            "age_min": 295,
+            "fallback": true
           },
           "delta": {
             "items": -1,
@@ -90,7 +90,7 @@
             "run_id": 27052353230,
             "run_url": "https://github.com/seansble/Sudanghelp/actions/runs/27052353230",
             "started_at": "2026-06-06T04:17:59Z",
-            "age_min": 119
+            "age_min": 296
           }
         },
         "exchange-snapshot": {
@@ -110,7 +110,7 @@
             "time_status": "ok",
             "updated_at": "2026-06-06T00:00:18.725000+00:00",
             "updated_at_raw": "2026-06-06T00:00:18.725Z",
-            "age_min": 377,
+            "age_min": 554,
             "fallback": true
           },
           "delta": {
@@ -138,13 +138,13 @@
           "metrics": {
             "items": 73,
             "size_bytes": 15818,
-            "hash": "22f351dc86e3b67dfae01aeb0e00e7ecc20388f76352bcfad59c44510176046f"
+            "hash": "e21e2e0dbd1f98acc1b2a267facce4934dd47606208cb3d05df083e27c0231e5"
           },
           "freshness": {
             "time_status": "ok",
-            "updated_at": "2026-06-06T04:55:46+00:00",
-            "updated_at_raw": "2026-06-06 13:55:46",
-            "age_min": 81,
+            "updated_at": "2026-06-06T07:49:53+00:00",
+            "updated_at_raw": "2026-06-06 16:49:53",
+            "age_min": 84,
             "fallback": false
           },
           "delta": {
@@ -181,13 +181,13 @@
           "metrics": {
             "items": 49,
             "size_bytes": 1101,
-            "hash": "9fb195180863cea76c2bae698d0030ad7af6d35981ba1f01d89abb930ea46747"
+            "hash": "37f7b8353108a173114e6dfb923c1b7454e46afacbf6be874e4ed5f944d118a0"
           },
           "freshness": {
             "time_status": "ok",
-            "updated_at": "2026-06-06T06:00:20.700000+00:00",
-            "updated_at_raw": "2026-06-06T06:00:20.700Z",
-            "age_min": 17,
+            "updated_at": "2026-06-06T09:00:22.712000+00:00",
+            "updated_at_raw": "2026-06-06T09:00:22.712Z",
+            "age_min": 13,
             "fallback": false
           },
           "delta": {
@@ -222,9 +222,9 @@
           "page_url": "https://sudanghelp.co.kr/travel/",
           "status": "ok",
           "metrics": {
-            "items": 1302,
+            "items": 1303,
             "size_bytes": 38,
-            "hash": "a25b73fc46fa729b2fba2bba37f91cbb0a1d92fc1b183d5a07376219fcee3cfd"
+            "hash": "1e170b8c395434985f60cc36dbe22c113165f5509a6b45ffb146031785a07e2f"
           },
           "freshness": {
             "time_status": "ok",
@@ -234,7 +234,7 @@
             "fallback": false
           },
           "delta": {
-            "items": 3,
+            "items": 4,
             "size_bytes": 0,
             "hash_changed": true,
             "changed_vs_yesterday": true,
@@ -244,7 +244,7 @@
           "content": {
             "status": "ok",
             "reason": null,
-            "items": 1302
+            "items": 1303
           }
         }
       }
