@@ -1,6 +1,6 @@
 {
   "schema_version": 4,
-  "checked_at": "2026-07-17T07:06:21.255093Z",
+  "checked_at": "2026-07-17T09:41:39.367378Z",
   "groups": {
     "daily": {
       "label": "하루 단위 갱신",
@@ -26,7 +26,7 @@
             "time_status": "ok",
             "updated_at": "2026-07-17T03:34:56.740391+00:00",
             "updated_at_raw": "2026-07-17T12:34:56.740391+09:00",
-            "age_min": 211,
+            "age_min": 366,
             "fallback": true
           },
           "delta": null,
@@ -42,7 +42,7 @@
             "run_id": 29552673574,
             "run_url": "https://github.com/seansble/Sudanghelp/actions/runs/29552673574",
             "started_at": "2026-07-17T03:33:32Z",
-            "age_min": 212
+            "age_min": 368
           }
         },
         "promos": {
@@ -62,7 +62,7 @@
             "time_status": "ok",
             "updated_at": "2026-07-17T03:35:00+00:00",
             "updated_at_raw": "2026-07-17 12:35 KST",
-            "age_min": 211,
+            "age_min": 366,
             "fallback": true
           },
           "delta": null,
@@ -78,7 +78,7 @@
             "run_id": 29552673574,
             "run_url": "https://github.com/seansble/Sudanghelp/actions/runs/29552673574",
             "started_at": "2026-07-17T03:33:32Z",
-            "age_min": 212
+            "age_min": 368
           }
         },
         "exchange-snapshot": {
@@ -98,7 +98,7 @@
             "time_status": "ok",
             "updated_at": "2026-07-17T00:00:41.034000+00:00",
             "updated_at_raw": "2026-07-17T00:00:41.034Z",
-            "age_min": 425,
+            "age_min": 580,
             "fallback": true
           },
           "delta": null,
@@ -119,14 +119,14 @@
           "status": "ok",
           "metrics": {
             "items": 73,
-            "size_bytes": 15809,
-            "hash": "e3bd296d200b228b444322d7204f99ac93c1bf365670140883b3ba352cb17f42"
+            "size_bytes": 15794,
+            "hash": "7ba18c678f815c429f5171279889326155b4e3740762c8830a0372735980124d"
           },
           "freshness": {
             "time_status": "ok",
-            "updated_at": "2026-07-17T05:16:28+00:00",
-            "updated_at_raw": "2026-07-17 14:16:28",
-            "age_min": 109,
+            "updated_at": "2026-07-17T08:12:14+00:00",
+            "updated_at_raw": "2026-07-17 17:12:14",
+            "age_min": 89,
             "fallback": false
           },
           "delta": null,
@@ -153,17 +153,17 @@
           "data_label": "현재 환율 (49 통화, 정각 갱신)",
           "url": "https://sudanghelp-rates.sehwan4696.workers.dev/",
           "page_url": "https://sudanghelp.co.kr/travel/exchange-calculator/",
-          "status": "ok",
+          "status": "stale",
           "metrics": {
             "items": 49,
-            "size_bytes": 1121,
-            "hash": "1f664fe5edd2a37af075ec207c2f25d099828e7cdf1b04207dd76b3eb328dea7"
+            "size_bytes": 1138,
+            "hash": "5d71991de969181a64b2f12643de9da0d4b08ee721021c8bc8c442303fc1f332"
           },
           "freshness": {
-            "time_status": "ok",
-            "updated_at": "2026-07-17T07:00:41.016000+00:00",
-            "updated_at_raw": "2026-07-17T07:00:41.016Z",
-            "age_min": 5,
+            "time_status": "stale",
+            "updated_at": "2026-07-17T08:00:41.033000+00:00",
+            "updated_at_raw": "2026-07-17T08:00:41.033Z",
+            "age_min": 100,
             "fallback": false
           },
           "delta": null,
@@ -201,7 +201,7 @@
             "updated_at": "",
             "updated_at_raw": "",
             "age_min": null,
-            "fallback": false
+            "fallback": true
           },
           "delta": null,
           "http_status": 200,
@@ -214,5 +214,5 @@
       }
     }
   },
-  "overall": "ok"
+  "overall": "deploy_pending"
 }
