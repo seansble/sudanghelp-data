@@ -1,6 +1,6 @@
 {
   "schema_version": 4,
-  "checked_at": "2026-07-29T01:15:46.594827Z",
+  "checked_at": "2026-07-29T04:54:17.361938Z",
   "groups": {
     "daily": {
       "label": "하루 단위 갱신",
@@ -19,21 +19,21 @@
           "status": "ok",
           "metrics": {
             "items": 1665,
-            "size_bytes": 1729538,
-            "hash": "35710bb663bc552f4fa707c85518fec2c9a0e7b80d29a1ecdde70bc03d015534"
+            "size_bytes": 1729532,
+            "hash": "71388e3741b3e5d0d6fc7949f1370cbd887aa7c901f888271765e014f57446d0"
           },
           "freshness": {
             "time_status": "ok",
-            "updated_at": "2026-07-28T03:30:52.602337+00:00",
-            "updated_at_raw": "2026-07-28T12:30:52.602337+09:00",
-            "age_min": 1304,
-            "fallback": true
+            "updated_at": "2026-07-29T03:34:40.436275+00:00",
+            "updated_at_raw": "2026-07-29T12:34:40.436275+09:00",
+            "age_min": 79,
+            "fallback": false
           },
           "delta": {
             "items": 0,
-            "size_bytes": 0,
-            "hash_changed": false,
-            "changed_vs_yesterday": false,
+            "size_bytes": -6,
+            "hash_changed": true,
+            "changed_vs_yesterday": true,
             "compared_to": "yesterday"
           },
           "http_status": 200,
@@ -45,10 +45,10 @@
           "cron": {
             "status": "ok",
             "conclusion": "success",
-            "run_id": 30326103670,
-            "run_url": "https://github.com/seansble/Sudanghelp/actions/runs/30326103670",
-            "started_at": "2026-07-28T03:30:26Z",
-            "age_min": 1305
+            "run_id": 30419924672,
+            "run_url": "https://github.com/seansble/Sudanghelp/actions/runs/30419924672",
+            "started_at": "2026-07-29T03:34:15Z",
+            "age_min": 80
           }
         },
         "promos": {
@@ -60,37 +60,37 @@
           "page_url": "https://sudanghelp.co.kr/compoundcalc/rates/#sns-promos",
           "status": "ok",
           "metrics": {
-            "items": 7,
-            "size_bytes": 15908,
-            "hash": "dc79451530111f8e9afc6388dce8acaa2b097260eb72cf8022b6ce8262bda0eb"
+            "items": 11,
+            "size_bytes": 21771,
+            "hash": "44862583b37eab402c272bbba9f9b6120dd2f834759fa7431417a9917357cea9"
           },
           "freshness": {
             "time_status": "ok",
-            "updated_at": "2026-07-28T03:31:00+00:00",
-            "updated_at_raw": "2026-07-28 12:31 KST",
-            "age_min": 1304,
-            "fallback": true
+            "updated_at": "2026-07-29T03:35:00+00:00",
+            "updated_at_raw": "2026-07-29 12:35 KST",
+            "age_min": 79,
+            "fallback": false
           },
           "delta": {
-            "items": 0,
-            "size_bytes": 0,
-            "hash_changed": false,
-            "changed_vs_yesterday": false,
+            "items": 4,
+            "size_bytes": 5863,
+            "hash_changed": true,
+            "changed_vs_yesterday": true,
             "compared_to": "yesterday"
           },
           "http_status": 200,
           "content": {
             "status": "ok",
             "reason": null,
-            "items": 7
+            "items": 11
           },
           "cron": {
             "status": "ok",
             "conclusion": "success",
-            "run_id": 30326103670,
-            "run_url": "https://github.com/seansble/Sudanghelp/actions/runs/30326103670",
-            "started_at": "2026-07-28T03:30:26Z",
-            "age_min": 1305
+            "run_id": 30419924672,
+            "run_url": "https://github.com/seansble/Sudanghelp/actions/runs/30419924672",
+            "started_at": "2026-07-29T03:34:15Z",
+            "age_min": 80
           }
         },
         "exchange-snapshot": {
@@ -110,8 +110,8 @@
             "time_status": "ok",
             "updated_at": "2026-07-29T00:00:38.832000+00:00",
             "updated_at_raw": "2026-07-29T00:00:38.832Z",
-            "age_min": 75,
-            "fallback": false
+            "age_min": 293,
+            "fallback": true
           },
           "delta": {
             "items": 0,
@@ -137,19 +137,19 @@
           "status": "ok",
           "metrics": {
             "items": 73,
-            "size_bytes": 15831,
-            "hash": "354ddcea72cbe88da4bcae7448459b24653424f1ef5098fe2222f8b55650d21b"
+            "size_bytes": 15843,
+            "hash": "cc62aad6b4ee7c93bb147be5bdab1d4eb42bf8947a7bdaa7a4cb71cd62482a9d"
           },
           "freshness": {
             "time_status": "ok",
-            "updated_at": "2026-07-29T00:04:53+00:00",
-            "updated_at_raw": "2026-07-29 09:04:53",
-            "age_min": 70,
+            "updated_at": "2026-07-29T04:14:12+00:00",
+            "updated_at_raw": "2026-07-29 13:14:12",
+            "age_min": 40,
             "fallback": false
           },
           "delta": {
             "items": 0,
-            "size_bytes": -1,
+            "size_bytes": 11,
             "hash_changed": true,
             "changed_vs_yesterday": true,
             "compared_to": "yesterday"
@@ -180,19 +180,19 @@
           "status": "ok",
           "metrics": {
             "items": 49,
-            "size_bytes": 1121,
-            "hash": "d7523f2de776141bce84fa3f105ea71f2710c7c1d4beed816aafbb52b37dccff"
+            "size_bytes": 1125,
+            "hash": "bab1593784d109fb86ae4446d0f9c01ce76226ccdb2a4fdb7f703a6de0d49953"
           },
           "freshness": {
             "time_status": "ok",
-            "updated_at": "2026-07-29T01:00:38.819000+00:00",
-            "updated_at_raw": "2026-07-29T01:00:38.819Z",
-            "age_min": 15,
+            "updated_at": "2026-07-29T04:00:38.839000+00:00",
+            "updated_at_raw": "2026-07-29T04:00:38.839Z",
+            "age_min": 53,
             "fallback": false
           },
           "delta": {
             "items": 0,
-            "size_bytes": -10,
+            "size_bytes": -6,
             "hash_changed": true,
             "changed_vs_yesterday": true,
             "compared_to": "yesterday"
@@ -222,9 +222,9 @@
           "page_url": "https://sudanghelp.co.kr/travel/",
           "status": "ok",
           "metrics": {
-            "items": 1578,
+            "items": 1580,
             "size_bytes": 38,
-            "hash": "779c8d3a11b639369f42ad6a1e1f5b0f5300707728d5838aa27297659ae824c7"
+            "hash": "4ce86c43fb0a171f8b7d0fbbf28fb9a53b6135e3f7470537e099b19c00df923a"
           },
           "freshness": {
             "time_status": "ok",
@@ -234,7 +234,7 @@
             "fallback": false
           },
           "delta": {
-            "items": 1,
+            "items": 3,
             "size_bytes": 0,
             "hash_changed": true,
             "changed_vs_yesterday": true,
@@ -244,7 +244,7 @@
           "content": {
             "status": "ok",
             "reason": null,
-            "items": 1578
+            "items": 1580
           }
         }
       }
