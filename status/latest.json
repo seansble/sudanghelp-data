@@ -1,6 +1,6 @@
 {
   "schema_version": 4,
-  "checked_at": "2026-08-05T12:29:11.785924Z",
+  "checked_at": "2026-08-05T15:04:35.542324Z",
   "groups": {
     "daily": {
       "label": "하루 단위 갱신",
@@ -26,7 +26,7 @@
             "time_status": "ok",
             "updated_at": "2026-08-05T03:29:04.597939+00:00",
             "updated_at_raw": "2026-08-05T12:29:04.597939+09:00",
-            "age_min": 540,
+            "age_min": 695,
             "fallback": true
           },
           "delta": {
@@ -48,7 +48,7 @@
             "run_id": 30972362217,
             "run_url": "https://github.com/seansble/Sudanghelp/actions/runs/30972362217",
             "started_at": "2026-08-05T03:28:40Z",
-            "age_min": 540
+            "age_min": 695
           }
         },
         "promos": {
@@ -68,7 +68,7 @@
             "time_status": "ok",
             "updated_at": "2026-08-05T03:29:00+00:00",
             "updated_at_raw": "2026-08-05 12:29 KST",
-            "age_min": 540,
+            "age_min": 695,
             "fallback": true
           },
           "delta": {
@@ -90,7 +90,7 @@
             "run_id": 30972362217,
             "run_url": "https://github.com/seansble/Sudanghelp/actions/runs/30972362217",
             "started_at": "2026-08-05T03:28:40Z",
-            "age_min": 540
+            "age_min": 695
           }
         },
         "exchange-snapshot": {
@@ -98,24 +98,24 @@
           "page_label": "여행 가계부",
           "tech_context": "Cloudflare Worker · sudanghelp-rates 일일 KV 스냅샷",
           "data_label": "오늘 KST 날짜의 환율 스냅샷 (49 통화)",
-          "url": "https://sudanghelp-rates.sehwan4696.workers.dev/rates/2026-08-05",
+          "url": "https://sudanghelp-rates.sehwan4696.workers.dev/rates/2026-08-06",
           "page_url": "https://sudanghelp.co.kr/travel/expenses/",
           "status": "ok",
           "metrics": {
             "items": 49,
-            "size_bytes": 810,
-            "hash": "84555131ca2ce2deab3f79762057a191b8123ac3cfd3238eed06a2a951020f43"
+            "size_bytes": 924,
+            "hash": "423a33fe70dfebf51a9ca5a0cf3ae2dbb0400929ff8f7b1808b251a09655a608"
           },
           "freshness": {
             "time_status": "ok",
-            "updated_at": "2026-08-05T00:00:14.864000+00:00",
-            "updated_at_raw": "2026-08-05T00:00:14.864Z",
-            "age_min": 748,
-            "fallback": true
+            "updated_at": "2026-08-05T15:00:14.995000+00:00",
+            "updated_at_raw": "2026-08-05T15:00:14.995Z",
+            "age_min": 4,
+            "fallback": false
           },
           "delta": {
             "items": 0,
-            "size_bytes": -105,
+            "size_bytes": 9,
             "hash_changed": true,
             "changed_vs_yesterday": true,
             "compared_to": "yesterday"
@@ -137,19 +137,19 @@
           "status": "ok",
           "metrics": {
             "items": 73,
-            "size_bytes": 15853,
-            "hash": "ed5014872e2d5cca1f11e0b6e003323004d2ff2d1db022a71501b19fbf745c56"
+            "size_bytes": 15845,
+            "hash": "d3cf52597676bed146917c3ae11443183ea2882d03b3d35857ea532c262b02fc"
           },
           "freshness": {
             "time_status": "ok",
-            "updated_at": "2026-08-05T10:34:49+00:00",
-            "updated_at_raw": "2026-08-05 19:34:49",
-            "age_min": 114,
+            "updated_at": "2026-08-05T12:52:26+00:00",
+            "updated_at_raw": "2026-08-05 21:52:26",
+            "age_min": 132,
             "fallback": false
           },
           "delta": {
             "items": 0,
-            "size_bytes": 68,
+            "size_bytes": 60,
             "hash_changed": true,
             "changed_vs_yesterday": true,
             "compared_to": "yesterday"
@@ -181,13 +181,13 @@
           "metrics": {
             "items": 49,
             "size_bytes": 1132,
-            "hash": "85d1ab6dee3a05c876a5cd1d3f2722f7c7862d1306c870299bc1ac9f0bf2eeda"
+            "hash": "c72f69b059f7c51b711661bd7879e217a7420af0e851eff50e767f97234bed6a"
           },
           "freshness": {
             "time_status": "ok",
-            "updated_at": "2026-08-05T12:00:14.879000+00:00",
-            "updated_at_raw": "2026-08-05T12:00:14.879Z",
-            "age_min": 28,
+            "updated_at": "2026-08-05T15:00:14.995000+00:00",
+            "updated_at_raw": "2026-08-05T15:00:14.995Z",
+            "age_min": 4,
             "fallback": false
           },
           "delta": {
