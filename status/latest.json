@@ -1,6 +1,6 @@
 {
   "schema_version": 4,
-  "checked_at": "2026-08-12T03:14:48.429940Z",
+  "checked_at": "2026-08-12T05:20:14.355423Z",
   "groups": {
     "daily": {
       "label": "하루 단위 갱신",
@@ -16,17 +16,17 @@
           "data_label": "FSS 예적금 금리 일일 공시",
           "url": "https://sudanghelp.co.kr/compoundcalc/rates/rates.json",
           "page_url": "https://sudanghelp.co.kr/compoundcalc/rates/",
-          "status": "ok",
+          "status": "stale",
           "metrics": {
             "items": 1662,
             "size_bytes": 1729556,
             "hash": "d9b58d78a66c15e6842076aa3a0a939052db6a55d680ebb6a4fb665fc500c6e1"
           },
           "freshness": {
-            "time_status": "ok",
+            "time_status": "stale",
             "updated_at": "2026-08-11T02:24:38.961809+00:00",
             "updated_at_raw": "2026-08-11T11:24:38.961809+09:00",
-            "age_min": 1490,
+            "age_min": 1615,
             "fallback": true
           },
           "delta": {
@@ -48,7 +48,7 @@
             "run_id": 31557605370,
             "run_url": "https://github.com/seansble/Sudanghelp/actions/runs/31557605370",
             "started_at": "2026-08-12T02:40:10Z",
-            "age_min": 34,
+            "age_min": 160,
             "note": "conclusion=cancelled"
           }
         },
@@ -59,17 +59,17 @@
           "data_label": "SNS 적금 특판 (블로거 교차검증)",
           "url": "https://sudanghelp.co.kr/compoundcalc/rates/featured_promos.json",
           "page_url": "https://sudanghelp.co.kr/compoundcalc/rates/#sns-promos",
-          "status": "ok",
+          "status": "stale",
           "metrics": {
             "items": 4,
             "size_bytes": 9067,
             "hash": "e815be2206c2424d88d4645f8034240d1b1236fc58dd8207986c7a03ff16725a"
           },
           "freshness": {
-            "time_status": "ok",
+            "time_status": "stale",
             "updated_at": "2026-08-11T02:24:00+00:00",
             "updated_at_raw": "2026-08-11 11:24 KST",
-            "age_min": 1490,
+            "age_min": 1616,
             "fallback": true
           },
           "delta": {
@@ -91,7 +91,7 @@
             "run_id": 31557605370,
             "run_url": "https://github.com/seansble/Sudanghelp/actions/runs/31557605370",
             "started_at": "2026-08-12T02:40:10Z",
-            "age_min": 34,
+            "age_min": 160,
             "note": "conclusion=cancelled"
           }
         },
@@ -112,7 +112,7 @@
             "time_status": "ok",
             "updated_at": "2026-08-12T00:00:43.153000+00:00",
             "updated_at_raw": "2026-08-12T00:00:43.153Z",
-            "age_min": 194,
+            "age_min": 319,
             "fallback": true
           },
           "delta": {
@@ -139,19 +139,19 @@
           "status": "ok",
           "metrics": {
             "items": 73,
-            "size_bytes": 15834,
-            "hash": "3a809f64034a9197a800cd3737e202ef63e7621d2ddde011bd8bd21465311b29"
+            "size_bytes": 15847,
+            "hash": "20adf9e36ae57021d6feed33759f93d51f1d0534c990f6b53467d4d213c3b509"
           },
           "freshness": {
             "time_status": "ok",
-            "updated_at": "2026-08-12T01:55:04+00:00",
-            "updated_at_raw": "2026-08-12 10:55:04",
-            "age_min": 79,
+            "updated_at": "2026-08-12T04:08:35+00:00",
+            "updated_at_raw": "2026-08-12 13:08:35",
+            "age_min": 71,
             "fallback": false
           },
           "delta": {
             "items": 0,
-            "size_bytes": 3,
+            "size_bytes": 16,
             "hash_changed": true,
             "changed_vs_yesterday": true,
             "compared_to": "yesterday"
@@ -182,19 +182,19 @@
           "status": "ok",
           "metrics": {
             "items": 49,
-            "size_bytes": 1133,
-            "hash": "d7835885f7d189d071dcf3b63f0ef00ffd71d6c86b05cae103853779ad56a25c"
+            "size_bytes": 1127,
+            "hash": "149fd911bef381c6d77a5d2a4800875599499cb21eb3f3b5c76a6b8ebd1c65bc"
           },
           "freshness": {
             "time_status": "ok",
-            "updated_at": "2026-08-12T03:00:44.947000+00:00",
-            "updated_at_raw": "2026-08-12T03:00:44.947Z",
-            "age_min": 14,
+            "updated_at": "2026-08-12T05:00:42.875000+00:00",
+            "updated_at_raw": "2026-08-12T05:00:42.875Z",
+            "age_min": 19,
             "fallback": false
           },
           "delta": {
             "items": 0,
-            "size_bytes": 12,
+            "size_bytes": 6,
             "hash_changed": true,
             "changed_vs_yesterday": true,
             "compared_to": "yesterday"
