@@ -1,6 +1,6 @@
 {
   "schema_version": 4,
-  "checked_at": "2026-08-16T10:09:10.719666Z",
+  "checked_at": "2026-08-16T11:08:19.478146Z",
   "groups": {
     "daily": {
       "label": "하루 단위 갱신",
@@ -26,7 +26,7 @@
             "time_status": "ok",
             "updated_at": "2026-08-16T01:55:52.203224+00:00",
             "updated_at_raw": "2026-08-16T10:55:52.203224+09:00",
-            "age_min": 493,
+            "age_min": 552,
             "fallback": true
           },
           "delta": {
@@ -48,7 +48,7 @@
             "run_id": 31920639040,
             "run_url": "https://github.com/seansble/Sudanghelp/actions/runs/31920639040",
             "started_at": "2026-08-16T01:54:40Z",
-            "age_min": 494
+            "age_min": 553
           }
         },
         "promos": {
@@ -68,7 +68,7 @@
             "time_status": "ok",
             "updated_at": "2026-08-16T01:56:00+00:00",
             "updated_at_raw": "2026-08-16 10:56 KST",
-            "age_min": 493,
+            "age_min": 552,
             "fallback": true
           },
           "delta": {
@@ -90,7 +90,7 @@
             "run_id": 31920639040,
             "run_url": "https://github.com/seansble/Sudanghelp/actions/runs/31920639040",
             "started_at": "2026-08-16T01:54:40Z",
-            "age_min": 494
+            "age_min": 553
           }
         },
         "exchange-snapshot": {
@@ -110,7 +110,7 @@
             "time_status": "ok",
             "updated_at": "2026-08-16T00:00:25.883000+00:00",
             "updated_at_raw": "2026-08-16T00:00:25.883Z",
-            "age_min": 608,
+            "age_min": 667,
             "fallback": true
           },
           "delta": {
@@ -138,13 +138,13 @@
           "metrics": {
             "items": 73,
             "size_bytes": 15833,
-            "hash": "d29c33e572bf367e087c824cf9aea5d5ed084e65e09f829fb0b2ed37d812aede"
+            "hash": "7f01cd68a445cd4d6bc6419518d25381c70361946dc88529ef3b55c8e0c54c17"
           },
           "freshness": {
             "time_status": "ok",
-            "updated_at": "2026-08-16T09:26:54+00:00",
-            "updated_at_raw": "2026-08-16 18:26:54",
-            "age_min": 42,
+            "updated_at": "2026-08-16T10:22:47+00:00",
+            "updated_at_raw": "2026-08-16 19:22:47",
+            "age_min": 45,
             "fallback": false
           },
           "delta": {
@@ -181,13 +181,13 @@
           "metrics": {
             "items": 49,
             "size_bytes": 1112,
-            "hash": "858a50af4f8392a23ed924a470ded93250958c5012db72549d635ac2d11b747a"
+            "hash": "5ac137c55683f8bfd960046e88070173ec83eb7a67ca3395fbe2bb2d19b75f5b"
           },
           "freshness": {
             "time_status": "ok",
-            "updated_at": "2026-08-16T10:00:27.167000+00:00",
-            "updated_at_raw": "2026-08-16T10:00:27.167Z",
-            "age_min": 8,
+            "updated_at": "2026-08-16T11:00:27.494000+00:00",
+            "updated_at_raw": "2026-08-16T11:00:27.494Z",
+            "age_min": 7,
             "fallback": false
           },
           "delta": {
@@ -222,19 +222,19 @@
           "page_url": "https://sudanghelp.co.kr/travel/",
           "status": "ok",
           "metrics": {
-            "items": 1674,
+            "items": 1676,
             "size_bytes": 38,
-            "hash": "1d6972be375da2dc938df6d36ee978c3455ab8ce6064251bedf024c414772eab"
+            "hash": "61138f09cc4f4ca83a8de65f9c93f31b5d842a8810f8ee55e2cd5b607790d8e8"
           },
           "freshness": {
             "time_status": "ok",
             "updated_at": "",
             "updated_at_raw": "",
             "age_min": null,
-            "fallback": true
+            "fallback": false
           },
           "delta": {
-            "items": 2,
+            "items": 4,
             "size_bytes": 0,
             "hash_changed": true,
             "changed_vs_yesterday": true,
@@ -244,7 +244,7 @@
           "content": {
             "status": "ok",
             "reason": null,
-            "items": 1674
+            "items": 1676
           }
         }
       }
