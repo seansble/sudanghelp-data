@@ -1,6 +1,6 @@
 {
   "schema_version": 4,
-  "checked_at": "2026-08-26T06:23:08.881592Z",
+  "checked_at": "2026-08-26T07:34:26.574203Z",
   "groups": {
     "daily": {
       "label": "하루 단위 갱신",
@@ -26,7 +26,7 @@
             "time_status": "ok",
             "updated_at": "2026-08-26T01:56:14.040045+00:00",
             "updated_at_raw": "2026-08-26T10:56:14.040045+09:00",
-            "age_min": 266,
+            "age_min": 338,
             "fallback": true
           },
           "delta": {
@@ -48,7 +48,7 @@
             "run_id": 32920802462,
             "run_url": "https://github.com/seansble/Sudanghelp/actions/runs/32920802462",
             "started_at": "2026-08-26T01:55:48Z",
-            "age_min": 267
+            "age_min": 338
           }
         },
         "promos": {
@@ -68,7 +68,7 @@
             "time_status": "ok",
             "updated_at": "2026-08-26T01:56:00+00:00",
             "updated_at_raw": "2026-08-26 10:56 KST",
-            "age_min": 267,
+            "age_min": 338,
             "fallback": true
           },
           "delta": {
@@ -90,7 +90,7 @@
             "run_id": 32920802462,
             "run_url": "https://github.com/seansble/Sudanghelp/actions/runs/32920802462",
             "started_at": "2026-08-26T01:55:48Z",
-            "age_min": 267
+            "age_min": 338
           }
         },
         "exchange-snapshot": {
@@ -110,7 +110,7 @@
             "time_status": "ok",
             "updated_at": "2026-08-26T00:00:23.719000+00:00",
             "updated_at_raw": "2026-08-26T00:00:23.719Z",
-            "age_min": 382,
+            "age_min": 454,
             "fallback": true
           },
           "delta": {
@@ -137,19 +137,19 @@
           "status": "ok",
           "metrics": {
             "items": 73,
-            "size_bytes": 15852,
-            "hash": "74ef4163cc7a9cdf32cb3f6420de96b4a5b45cc6966c994ec20eda3f103714fc"
+            "size_bytes": 15835,
+            "hash": "8397b4d0cbe8a79375afd9dfa1ff7b84fb5f52f8409878c05b7bbf14ddc6b5b7"
           },
           "freshness": {
             "time_status": "ok",
-            "updated_at": "2026-08-26T05:34:07+00:00",
-            "updated_at_raw": "2026-08-26 14:34:07",
-            "age_min": 49,
+            "updated_at": "2026-08-26T06:49:01+00:00",
+            "updated_at_raw": "2026-08-26 15:49:01",
+            "age_min": 45,
             "fallback": false
           },
           "delta": {
             "items": 0,
-            "size_bytes": 22,
+            "size_bytes": 5,
             "hash_changed": true,
             "changed_vs_yesterday": true,
             "compared_to": "yesterday"
@@ -181,13 +181,13 @@
           "metrics": {
             "items": 49,
             "size_bytes": 1130,
-            "hash": "8dc4a46b2ef9132e71a72878495e0dc2da90ea9fc7e5a3d4dcde01cf84770f55"
+            "hash": "8bdf4615affbc70e12052e6976c982745b15f5ad8db1ca3ca226d45c1aa55bb2"
           },
           "freshness": {
             "time_status": "ok",
-            "updated_at": "2026-08-26T06:00:20.979000+00:00",
-            "updated_at_raw": "2026-08-26T06:00:20.979Z",
-            "age_min": 22,
+            "updated_at": "2026-08-26T07:00:21.343000+00:00",
+            "updated_at_raw": "2026-08-26T07:00:21.343Z",
+            "age_min": 34,
             "fallback": false
           },
           "delta": {
