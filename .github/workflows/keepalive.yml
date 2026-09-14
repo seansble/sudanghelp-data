@@ -1,0 +1,32 @@
+name: keepalive
+
+# GitHub은 60일간 저장소 활동(커밋)이 없으면 예약(cron) 워크플로우를 자동 비활성화한다.
+# 이 워크플로우는 매주 1회 타임스탬프 파일을 커밋해 그 시계를 리셋한다.
+# 주의: 기본 GITHUB_TOKEN 으로 만든 커밋은 이 시계를 리셋하지 못하는 경우가 있어
+#       PAT(secrets.KEEPALIVE_PAT)로 체크아웃/푸시한다.
+
+on:
+  schedule:
+    - cron: '23 6 * * 1'   # 매주 월요일 06:23 UTC (15:23 KST)
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  keepalive:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.KEEPALIVE_PAT }}
+
+      - name: Refresh activity timestamp
+        run: |
+          mkdir -p .github
+          date -u +%Y-%m-%dT%H:%M:%SZ > .github/keepalive.txt
+          git config user.name  "keepalive-bot"
+          git config user.email "keepalive-bot@users.noreply.github.com"
+          git add .github/keepalive.txt
+          git commit -m "chore(keepalive): weekly activity ping"
+          git push
